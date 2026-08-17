@@ -1,0 +1,33 @@
+1. Backend em Java
+   Spring Boot(verificar se pode)
+
+2. Banco de dados
+   PostgreSQL em Docker
+
+3. Aplicação desktop
+   JavaFX
+
+4. Web
+   React
+
+5. Integração
+  Desktop e site usando a mesma API
+
+6. Funcionalidades principais
+   usuários/login
+   eventos
+   atividades
+   inscrições
+   agenda
+   frequência/QR Code
+   avaliações
+   relatórios
+
+7. POO
+   encapsulamento
+   interfaces
+   composição
+   polimorfismo
+   SOLID
+   pelo menos 2 padrões de projeto
+   testes automatizados
