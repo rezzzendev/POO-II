@@ -1,0 +1,60 @@
+Stack recomendada (framework-free)
+
+Camada: Linguagem
+Tecnologia: Java 17/21 puro
+Por quê: Obrigatório pela disciplina (RNF-03)
+────────────────────────────────────────
+Camada: Arquitetura
+Tecnologia: Hexagonal (domínio → aplicação/casos de uso → portas →
+adaptadores)
+Por quê: É a arquitetura recomendada no próprio documento (RNF-01, ROO-09)
+────────────────────────────────────────
+Camada: Persistência
+Tecnologia: JDBC puro + H2 embarcado (arquivo local)
+Por quê: Banco relacional real (RNF-04) sem exigir servidor instalado —
+roda em qualquer máquina (RNF-15). Sem JPA/Hibernate, você mesmo escreve
+o mapeamento, o que reforça o aprendizado de POO em vez de mascará-lo
+────────────────────────────────────────
+Camada: API REST
+Tecnologia: com.sun.net.httpserver.HttpServer (nativo do JDK) + org.json
+para serialização
+Por quê: Evita qualquer framework de IoC/controllers anotados; você escreve
+as rotas e a autorização (RNF-06) manualmente
+────────────────────────────────────────
+Camada: App desktop
+Tecnologia: Java Swing (nativo do JDK) usando java.net.http.HttpClient para
+chamar a API
+Por quê: Zero dependências externas, maduro, bem documentado
+────────────────────────────────────────
+Camada: Site público
+Tecnologia: HTML/CSS/JS puro (estático), fetch() chamando a mesma API
+Por quê: Sem framework JS; cumpre RNF-02 (mesma API, mesmo banco)
+──────────────────────
+Camada: QR Code
+Tecnologia: Biblioteca ZXing
+Por quê: Geração e leitura de QR (RF-20/21) — é uma lib pontual, não um
+framework de aplicação
+────────────────────────────────────────
+Camada: PDF (certificados, desejável)
+Tecnologia: Apache PDF
+Por quê: Só entra depois do núcleo obrigatório pronto
+──────────────────────
+Camada: E-mail (desejável)
+Tecnologia: Jakarta Mail
+Por quê: Idem, só para RF-34
+────────────────────────────────────────
+Camada: Senha
+Tecnologia: PBKDF2 viab)
+Por quê: Cumpre RNF-05
+────────────────────────────────────────
+Camada: Testes
+Tecnologia: JUnit 5 (+ Mockito se necessário)
+Por quê: Exigido pelo work de aplicação"
+────────────────────────────────────────
+Camada: Build
+Tecnologia: Maven, muln, adapter-in-api,adapter-in-desktop, ad
+Por quê: Organiza fisicamente a separação hexagonal exigida
+
+A distinção importante: framework (Spring, Hibernate) assume controle de fluxo e injeção — tends do domínio atrás deanotações.
+Biblioteca (ZXing, PDFBox, org.json) só resolve um problema pontual sem tomar conta da arquitetura. Ficar 100% em bibliotecas mantém o domínio em Java puro,
+agem orientada aobjetos" (30% da nota) está cobrando.
