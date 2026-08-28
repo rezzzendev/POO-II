@@ -1,5 +1,9 @@
 /home/matheus/projetos/POOII/src/main/java/Main.java
 /home/matheus/projetos/POOII/src/main/java/adapter/out/persistence/ConnectionFactory.java
-/home/matheus/projetos/POOII/src/main/java/application/EventoRepository.java
-/home/matheus/projetos/POOII/src/main/java/domain/Evento.java
-/home/matheus/projetos/POOII/src/main/java/domain/StatusEvento.java
+/home/matheus/projetos/POOII/src/main/java/adapter/out/persistence/PersistenciaException.java
+/home/matheus/projetos/POOII/src/main/java/adapter/out/persistence/evento/EventoRepositoryJdbc.java
+/home/matheus/projetos/POOII/src/main/java/application/evento/EventoRepository.java
+/home/matheus/projetos/POOII/src/main/java/domain/evento/Evento.java
+/home/matheus/projetos/POOII/src/main/java/domain/evento/EventoInvalidoException.java
+/home/matheus/projetos/POOII/src/main/java/domain/evento/Modalidade.java
+/home/matheus/projetos/POOII/src/main/java/domain/evento/StatusEvento.java

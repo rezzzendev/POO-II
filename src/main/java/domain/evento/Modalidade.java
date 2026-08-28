@@ -1,4 +1,4 @@
-package domain;
+package domain.evento;
 
 public enum Modalidade {
 

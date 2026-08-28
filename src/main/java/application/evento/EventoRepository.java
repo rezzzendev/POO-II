@@ -1,6 +1,6 @@
-package application;
+package application.evento;
 
-import domain.Evento;
+import domain.evento.Evento;
 
 import java.util.List;
 import java.util.Optional;

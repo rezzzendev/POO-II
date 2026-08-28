@@ -19,12 +19,13 @@
         Sem framework de aplicação. org.json é só uma lib pontual de
         serialização, usada pelo adaptador de entrada da API (adapter.in.api) —
         não toma conta da arquitetura como Spring/Jackson-com-anotações fariam.
+        H2 embarcado (arquivo local) em vez de servidor: RNF-04/RNF-15.
     -->
     <dependencies>
         <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>42.7.4</version>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>2.2.224</version>
         </dependency>
         <dependency>
             <groupId>org.json</groupId>
