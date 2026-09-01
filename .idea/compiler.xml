@@ -7,6 +7,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="POOII" />
+        <module name="desktop" />
       </profile>
     </annotationProcessing>
   </component>

@@ -1,31 +1,21 @@
+import adapter.in.api.EventoHttpHandler;
 import adapter.out.persistence.evento.EventoRepositoryJdbc;
 import application.evento.EventoRepository;
-import domain.evento.Evento;
-import domain.evento.Modalidade;
+import com.sun.net.httpserver.HttpServer;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import java.io.IOException;
+import java.net.InetSocketAddress;
 
-/**
- * Só um teste manual da cadeia domain -> application -> JDBC -> H2, enquanto
- * o adapter.in.api (que vai virar o Main de verdade) ainda não existe.
- */
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         EventoRepository repository = new EventoRepositoryJdbc();
 
-        Evento evento = Evento.novo(
-                "Semana de Tecnologia",
-                "Palestras e oficinas sobre POO",
-                LocalDateTime.of(2026, 10, 1, 9, 0),
-                LocalDateTime.of(2026, 10, 1, 18, 0),
-                Modalidade.PRESENCIAL
-        );
-        repository.salvar(evento);
+        HttpServer servidor = HttpServer.create(new InetSocketAddress(8080), 0);
+        servidor.createContext("/eventos", new EventoHttpHandler(repository));
+        servidor.setExecutor(null);
+        servidor.start();
 
-        List<Evento> eventos = repository.listarTodos();
-        System.out.println("Eventos cadastrados:");
-        eventos.forEach(System.out::println);
+        System.out.println("API no ar em http://localhost:8080/eventos");
     }
 }

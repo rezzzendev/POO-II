@@ -1,9 +1,13 @@
-adapter/out/persistence/ConnectionFactory.class
-Main.class
 domain/evento/Evento.class
 domain/evento/Modalidade.class
 adapter/out/persistence/PersistenciaException.class
+adapter/out/persistence/evento/EventoRepositoryJdbc.class
+domain/tarefa/Tarefa.class
+adapter/in/api/EventoHttpHandler.class
+adapter/out/persistence/ConnectionFactory.class
+Main.class
 application/evento/EventoRepository.class
 domain/evento/EventoInvalidoException.class
 domain/evento/StatusEvento.class
-adapter/out/persistence/evento/EventoRepositoryJdbc.class
+application/tarefa/TarefaRepository.class
+adapter/out/persistence/tarefa/TarefaRepositoryJdbc.class

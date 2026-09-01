@@ -15,6 +15,18 @@ public class ConnectionFactory {
     private static final String USER = "eventos";
     private static final String PASSWORD = "eventos";
 
+    static {
+        // mvn exec:java roda a app numa thread cujo context classloader o
+        // DriverManager não enxerga, então o registro automático do driver
+        // via ServiceLoader falha. Forçar o carregamento da classe aqui
+        // aciona o static block do próprio driver, que se registra sozinho.
+        try {
+            Class.forName("org.h2.Driver");
+        } catch (ClassNotFoundException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
+
     public static Connection getConnection() throws SQLException {
         Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
         criarEsquemaSeNecessario(connection);

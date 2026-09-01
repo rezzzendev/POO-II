@@ -16,4 +16,6 @@ public interface EventoRepository {
     Optional<Evento> buscarPorId(Long id);
 
     List<Evento> listarTodos();
+
+    void remover(Long id);
 }

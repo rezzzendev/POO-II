@@ -68,4 +68,16 @@ class EventoRepositoryJdbcTest {
         assertEquals("Evento A", todos.get(0).getTitulo());
         assertEquals("Evento B", todos.get(1).getTitulo());
     }
+
+    @Test
+    void removeEvento() {
+        Evento salvo = repository.salvar(Evento.novo("Evento a remover", null,
+                LocalDateTime.of(2026, 10, 1, 9, 0),
+                LocalDateTime.of(2026, 10, 1, 12, 0),
+                Modalidade.ONLINE));
+
+        repository.remover(salvo.getId());
+
+        assertTrue(repository.buscarPorId(salvo.getId()).isEmpty());
+    }
 }

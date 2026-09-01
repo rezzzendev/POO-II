@@ -1,9 +1,13 @@
 /home/matheus/projetos/POOII/src/main/java/Main.java
+/home/matheus/projetos/POOII/src/main/java/adapter/in/api/EventoHttpHandler.java
 /home/matheus/projetos/POOII/src/main/java/adapter/out/persistence/ConnectionFactory.java
 /home/matheus/projetos/POOII/src/main/java/adapter/out/persistence/PersistenciaException.java
 /home/matheus/projetos/POOII/src/main/java/adapter/out/persistence/evento/EventoRepositoryJdbc.java
+/home/matheus/projetos/POOII/src/main/java/adapter/out/persistence/tarefa/TarefaRepositoryJdbc.java
 /home/matheus/projetos/POOII/src/main/java/application/evento/EventoRepository.java
+/home/matheus/projetos/POOII/src/main/java/application/tarefa/TarefaRepository.java
 /home/matheus/projetos/POOII/src/main/java/domain/evento/Evento.java
 /home/matheus/projetos/POOII/src/main/java/domain/evento/EventoInvalidoException.java
 /home/matheus/projetos/POOII/src/main/java/domain/evento/Modalidade.java
 /home/matheus/projetos/POOII/src/main/java/domain/evento/StatusEvento.java
+/home/matheus/projetos/POOII/src/main/java/domain/tarefa/Tarefa.java
