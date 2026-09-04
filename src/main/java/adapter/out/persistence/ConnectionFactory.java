@@ -37,7 +37,7 @@ public class ConnectionFactory {
         try (Statement stmt = connection.createStatement()) {
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS eventos (
-                    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                    id BIGINT AUTO_INCREMENT PRIMARY KEY,f
                     titulo VARCHAR(255) NOT NULL,
                     descricao VARCHAR(2000),
                     inicio TIMESTAMP NOT NULL,
