@@ -1,12 +1,12 @@
 package domain.evento;
 
-import org.junit.jupiter.api.Test;
-
-import java.time.LocalDateTime;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.junit.jupiter.api.Test;
+
+import java.time.LocalDateTime;
 
 class EventoTest {
 
@@ -15,7 +15,8 @@ class EventoTest {
 
     @Test
     void novoEventoNasceEmRascunho() {
-        Evento evento = Evento.novo("Semana de Tecnologia", "desc", inicio, fim, Modalidade.PRESENCIAL);
+        Evento evento =
+                Evento.novo("Semana de Tecnologia", "desc", inicio, fim, Modalidade.PRESENCIAL);
 
         assertEquals(StatusEvento.RASCUNHO, evento.getStatus());
         assertNull(evento.getId());
@@ -23,19 +24,22 @@ class EventoTest {
 
     @Test
     void tituloEmBrancoNaoPodeSerCriado() {
-        assertThrows(EventoInvalidoException.class,
+        assertThrows(
+                EventoInvalidoException.class,
                 () -> Evento.novo("  ", "desc", inicio, fim, Modalidade.PRESENCIAL));
     }
 
     @Test
     void modalidadeEObrigatoria() {
-        assertThrows(EventoInvalidoException.class,
+        assertThrows(
+                EventoInvalidoException.class,
                 () -> Evento.novo("Título", "desc", inicio, fim, null));
     }
 
     @Test
     void fimTemQueSerDepoisDoInicio() {
-        assertThrows(EventoInvalidoException.class,
+        assertThrows(
+                EventoInvalidoException.class,
                 () -> Evento.novo("Título", "desc", fim, inicio, Modalidade.PRESENCIAL));
     }
 
@@ -76,14 +80,25 @@ class EventoTest {
         assertEquals("Novo título", evento.getTitulo());
 
         evento.publicar();
-        assertThrows(EventoInvalidoException.class,
+        assertThrows(
+                EventoInvalidoException.class,
                 () -> evento.editar("Outro título", "x", inicio, fim, Modalidade.ONLINE));
     }
 
     @Test
     void doisEventosComMesmoIdSaoIguais() {
-        Evento a = new Evento(1L, "A", "desc", inicio, fim, Modalidade.PRESENCIAL, StatusEvento.RASCUNHO);
-        Evento b = new Evento(1L, "B", "outra desc", inicio, fim, Modalidade.ONLINE, StatusEvento.PUBLICADO);
+        Evento a =
+                new Evento(
+                        1L, "A", "desc", inicio, fim, Modalidade.PRESENCIAL, StatusEvento.RASCUNHO);
+        Evento b =
+                new Evento(
+                        1L,
+                        "B",
+                        "outra desc",
+                        inicio,
+                        fim,
+                        Modalidade.ONLINE,
+                        StatusEvento.PUBLICADO);
 
         assertEquals(a, b);
         assertEquals(a.hashCode(), b.hashCode());

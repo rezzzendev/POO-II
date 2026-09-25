@@ -1,0 +1,416 @@
+GUIA DO PROJETO PARA A EQUIPE — LEIA ANTES DE COMEÇAR
+Plataforma de Gestão de Eventos — POO II
+Atualizado em 24/09/2026.
+
+1. O QUE ESTAMOS CONSTRUINDO
+
+O sistema permite que uma organização monte um evento, cadastre atividades, publique a programação, receba inscrições, controle presença e receba avaliações dos participantes.
+
+Exemplo:
+- A organização cria a “Semana de Tecnologia”.
+- Dentro dela cadastra uma oficina de Java e uma palestra.
+- Publica o evento.
+- Um participante entra no site, cria conta e se inscreve.
+- Ele escolhe atividades e vê sua agenda.
+- A organização gera um QR Code; o participante envia a imagem e registra presença.
+- Com presença validada, ele pode avaliar a atividade.
+- A organização consulta resultados e exporta um relatório.
+
+É um trabalho de Programação Orientada a Objetos. Não basta deixar a tela bonita: precisamos entender quem protege cada regra, como os objetos colaboram e como provar isso nos testes.
+
+2. QUEM FAZ O QUÊ
+
+- Matheus Rodrigues de Rezende: API, objetos do domínio, banco, regras, testes e integração.
+- Habny Gabriel de Bastos Batista: interface desktop administrativa em Swing.
+- Carlos Daniel da Silva Santos: site público, conta/perfil e organização visual do web.
+- Matheus Lima: parte do participante no web — inscrições, agenda, frequência e avaliações.
+
+Matheus Lima e Matheus Rezende são responsáveis diferentes. A lista exata de tarefas está no arquivo Divisao. Esta distribuição começa na base entregue agora; não é uma atribuição retroativa do código existente.
+
+3. ENTENDA AS TRÊS PARTES DO SISTEMA
+
+API / BACKEND
+É o programa Java que fica rodando e recebe pedidos. Valida as regras, confere permissões e acessa o banco.
+
+DESKTOP
+É o aplicativo com janelas Swing usado principalmente pela organização. Ele envia pedidos à API. Não abre nem altera o arquivo do banco.
+
+WEB
+É o site aberto no navegador. Usa HTML para a estrutura, CSS para aparência e JavaScript para ações e comunicação com a API. Também não acessa o banco diretamente.
+
+O caminho dos dados é:
+Desktop ou site → pedido HTTP → API → regras e banco → resposta → tela.
+
+Se um evento é criado pelo desktop, o site deve conseguir mostrar o mesmo evento depois da publicação. Isso só funciona porque os dois usam a mesma API e a mesma base.
+
+4. O QUE INSTALAR
+
+- JDK 21 ou superior: compila e executa Java. JDK não é somente o runtime/JRE.
+- Maven 3.9 ou superior: baixa as bibliotecas, compila, testa e monta os JARs.
+- Um navegador para o site.
+- Uma IDE, como IntelliJ, é opcional. É possível rodar pelo terminal.
+- Python 3 só é necessário para os scripts auxiliares de demonstração e medição. Não é necessário para usar API, desktop ou site.
+
+Não precisa instalar Spring, Node, React, PostgreSQL, Docker ou servidor de banco. A equipe não vai usar framework de aplicação. H2, org.json, ZXing e JUnit são bibliotecas pontuais já declaradas no Maven.
+
+Confira no terminal:
+
+java -version
+mvn -version
+
+A primeira compilação precisa de internet. Depois que as dependências forem baixadas, o Maven pode reutilizá-las.
+
+5. COMO RODAR PELA PRIMEIRA VEZ
+
+Abra o terminal na pasta raiz do projeto. É a pasta que contém pom.xml, README.md, Divisao, Evidencias e Explicacao. Não confundir com a subpasta desktop.
+
+PASSO A — Compilar e testar a API:
+
+mvn clean package
+
+O resultado esperado é BUILD SUCCESS. É criado:
+
+target/gestao-eventos-1.0-SNAPSHOT.jar
+
+PASSO B — Criar os dados fictícios de demonstração:
+
+java -jar target/gestao-eventos-1.0-SNAPSHOT.jar --demo
+
+Esse comando prepara as contas, o evento de exemplo, 100 atividades, 501 participantes inscritos e um questionário. Ele termina depois de preparar os dados. Não deixa a API aberta. Repetir a carga sem alterações intermediárias não duplica os registros.
+
+PASSO C — Iniciar API e site:
+
+java -jar target/gestao-eventos-1.0-SNAPSHOT.jar
+
+Deixe esse terminal aberto. Deve aparecer a mensagem com http://localhost:8080.
+
+PASSO D — Abrir o site:
+
+http://localhost:8080
+
+Não precisa abrir index.html diretamente nem iniciar outro servidor. A própria API entrega os arquivos da pasta web.
+
+PASSO E — Iniciar o desktop em OUTRO terminal, também na raiz:
+
+mvn -f desktop/pom.xml clean package
+java -jar desktop/target/desktop-1.0-SNAPSHOT.jar
+
+O desktop precisa de ambiente gráfico. Não feche a API enquanto testa o desktop ou o site.
+
+6. CONTAS PARA TESTE
+
+Administrador: admin@demo.local
+Organizador: organizador@demo.local
+Participante: participante@demo.local
+Senha de todas as contas demo: Demo123!
+
+Habny deve começar como organizador. Carlos e Matheus Lima devem testar como visitante e participante.
+
+Qualquer conta criada pelo cadastro público nasce como PARTICIPANTE. Mandar um campo “papel” no cadastro não cria administrador. Isso é intencional: a API protege a permissão.
+
+Administrador pode alterar o papel de OUTRA conta pelo endpoint documentado. Organizadores e administradores atuam como a organização global desta instalação; não existe divisão por dono de evento.
+
+7. ONDE CADA UM DEVE MEXER
+
+MATHEUS REZENDE — backend:
+- src/main/java/domain/: objetos, invariantes, políticas e erros de negócio.
+- src/main/java/application/: casos de uso e interfaces de repositório.
+- src/main/java/adapter/in/api/: rotas, leitura de JSON e respostas HTTP.
+- src/main/java/adapter/out/persistence/: SQL e persistência.
+- src/main/java/adapter/out/qr/: geração e leitura do QR com ZXing.
+- src/main/resources/db/: scripts do esquema.
+- src/test/java/: testes.
+- Main.java: início do programa.
+- ServidorApi.java: cria e conecta as dependências.
+- DadosDemonstracao.java: carga fictícia.
+
+HABNY — desktop:
+- desktop/src/main/java/LoginScreen.java: janela de entrada/cadastro.
+- DesktopApp.java: janela principal e gestão de eventos.
+- AtividadesDialog.java: lista, cadastro e operações de frequência da atividade.
+- EventoApiClient.java: lugar central das chamadas HTTP do desktop.
+- TarefaTela.java: executa chamadas demoradas fora da thread gráfica e trata o resultado.
+
+CARLOS E MATHEUS LIMA — web:
+- web/index.html: estrutura das seções e formulários.
+- web/style.css: aparência e adaptação a tamanhos de tela.
+- web/api.js: classe Api, responsável por enviar pedidos e devolver dados.
+- web/app.js: eventos dos botões/formulários e atualização da página.
+
+Não alterem target/: é saída da compilação. Não editem data/eventos.mv.db: é arquivo do banco. Não tentem copiar regras de inscrição ou presença para a tela para contornar um erro da API.
+
+8. O QUE JÁ ESTÁ PRONTO E O QUE AINDA FALTA NAS TELAS
+
+A API já oferece o núcleo de usuários, eventos, atividades, inscrição, agenda, frequência, avaliação e relatórios. Os testes e exemplos estão no repositório. Isso não significa que todos os formulários administrativos finais estejam prontos.
+
+O desktop já oferece uma base com eventos, atividades, publicação, frequência, QR e CSV. Habny deve completar principalmente edição, pessoas vinculadas, regras de inscrição, questionários e resultados.
+
+O web já oferece programação, cadastro/login, inscrição, agenda, envio da imagem QR e avaliação. Carlos deve completar perfil e melhorar a parte pública/visual. Matheus Lima deve melhorar os fluxos do participante e apresentar claramente o estado da inscrição, presença e avaliação.
+
+O arquivo Divisao tem a ordem de trabalho e o resultado esperado para cada pessoa. Não é necessário refazer a base inteira.
+
+9. COMO A TELA CONVERSA COM A API
+
+Uma rota é um endereço que representa uma operação, por exemplo /eventos ou /agenda.
+
+Os métodos principais são:
+- GET: consultar.
+- POST: criar ou executar uma ação, como publicar.
+- PUT: atualizar.
+- DELETE: remover quando a regra permitir.
+
+JSON é o formato dos dados. Exemplo de pedido de inscrição:
+
+{"eventoId":1,"atividadeIds":[2,3]}
+
+Os números são IDs retornados pela API. Não suponha que o evento sempre será 1. Use o ID do evento selecionado na tela. O mesmo vale para usuários, atividades, questionários e perguntas.
+
+Depois do login, a API devolve um token. O cliente envia:
+
+Authorization: Bearer TOKEN
+
+EventoApiClient já faz isso no desktop. Api já faz isso no web. Não mostrar token nem hash na interface do usuário.
+
+Códigos de resposta mais importantes:
+- 200: consulta ou alteração concluída.
+- 201: criação concluída.
+- 204: remoção concluída, sem corpo.
+- 400: dado ou regra inválida; mostre a mensagem.
+- 401: precisa entrar novamente.
+- 403: perfil sem permissão.
+- 404: rota/recurso não encontrado.
+
+Exemplo de erro:
+
+{"erro":"Vagas esgotadas: Oficina Java"}
+
+Exiba essa mensagem. Não substitua toda falha por “deu erro”. O contrato completo, corpos e permissões estão em docs/api.md.
+
+10. COMO ACRESCENTAR UMA FUNÇÃO NO WEB
+
+Exemplo: Carlos vai implementar edição de perfil.
+
+1. Consultar GET /usuarios/me para preencher nome e e-mail.
+2. Criar um formulário de edição em index.html.
+3. Ao enviar, chamar api.enviar('/usuarios/me', 'PUT', {nome, email}).
+4. Atualizar os dados exibidos somente depois da resposta de sucesso.
+5. Se houver erro, mostrar erro.message como os outros formulários de app.js.
+6. Testar nome inválido, e-mail duplicado e edição correta.
+
+Exemplo de padrão de chamada:
+
+try {
+  const perfil = await api.enviar('/usuarios/me', 'PUT', {nome, email});
+  // Atualizar a tela com o perfil retornado.
+} catch (erro) {
+  // Exibir erro.message.
+}
+
+Use textContent para colocar textos vindos da API na página. Não inserir conteúdo do participante diretamente como HTML.
+
+Carlos e Matheus Lima devem combinar alterações em index.html, style.css e app.js, porque são arquivos compartilhados. Dividam por seção e revisem antes de juntar.
+
+Se criarem novos arquivos JavaScript/CSS, avisem Matheus Rezende: SiteHttpHandler possui uma lista explícita de arquivos públicos permitidos. Criar arquivo novo sozinho não o torna acessível pela API. Os quatro arquivos atuais já estão configurados.
+
+11. COMO ACRESCENTAR UMA FUNÇÃO NO DESKTOP
+
+Exemplo: Habny vai criar a tela de regras de inscrição.
+
+1. Usar o ID do evento selecionado na lista.
+2. Consultar GET /regras-inscricao/{eventoId}.
+3. Mostrar campos para escolher atividades, controlar vagas e prazo de cancelamento.
+4. Montar o JSONObject com os nomes exatos do contrato.
+5. Chamar EventoApiClient.requisicao com PUT e a rota correta.
+6. Mostrar sucesso ou a mensagem de erro devolvida pela API.
+
+Usar o padrão TarefaTela.executar como nos botões novos de DesktopApp e AtividadesDialog. A requisição de rede pode demorar; se for executada diretamente na thread do Swing, a janela fica travada.
+
+Crie formulários por funcionalidade, com nomes claros. Não coloque SQL ou regras de capacidade nas janelas. Reutilize EventoApiClient, em vez de escrever autenticação diferente para cada tela.
+
+12. REGRAS DO SISTEMA QUE TODOS PRECISAM ENTENDER
+
+EVENTOS
+- Evento novo começa em RASCUNHO.
+- Criar e organizar atividades antes de publicar.
+- Somente PUBLICADO aparece para visitante/participante.
+- Depois da publicação, a programação fica bloqueada nesta versão para preservar escolhas e histórico.
+- Um evento publicado pode ser encerrado; não pode ser apagado pela API.
+- Fuso é definido na criação. Datas de programação são interpretadas nesse fuso.
+
+INSCRIÇÕES
+- Só há uma inscrição ativa por participante/evento.
+- Atividade selecionada precisa pertencer ao evento da inscrição.
+- A configuração define se há escolha de atividades e controle de vagas.
+- Capacidade nula/omitida na atividade significa ilimitada.
+- Agenda contém escolhas válidas; conflitos de horário são bloqueados.
+- Cancelamento respeita o prazo e libera a vaga.
+- Inscrição cancelada não pode ter suas escolhas alteradas.
+- Configuração de inscrição fica bloqueada após existir inscrição.
+
+FREQUÊNCIA
+- CHECK_IN: uma marcação válida basta.
+- ENTRADA_SAIDA: exige entrada e saída posterior.
+- MANUAL: presença depende da conferência da organização.
+- QR vale cinco minutos e contém um token, não os dados pessoais.
+- Enviar a imagem PNG é uma forma real de ler o QR. Câmera ao vivo não é necessária para esta base.
+- Repetir uma marcação não cria outra presença.
+- Correção manual exige justificativa e preserva quem fez e quando.
+- A última correção manual prevalece no cálculo; o histórico continua disponível.
+- Política da atividade fica bloqueada depois do primeiro registro.
+
+AVALIAÇÃO
+- Participante precisa estar inscrito e com presença validada.
+- Questionário suporta texto, escolha única e escala inteira.
+- Todas as perguntas são obrigatórias nesta versão.
+- Cada pergunta recebe um ID; use esse ID no envio, não a posição na tela.
+- Não é permitido responder duas vezes ao mesmo questionário.
+- Questionário criado não é editado; para novo instrumento, criar outro.
+- Respostas são identificadas e ficam restritas à organização. A tela deve informar isso antes do envio.
+- Correção posterior da presença não apaga uma avaliação já enviada.
+
+RELATÓRIOS
+- Somente organização consulta.
+- Há inscritos e frequência, com filtro de evento/atividade.
+- CSV é texto para salvar em arquivo; não deve ser lido como JSON.
+- O relatório de frequência totaliza relações participante/atividade, não necessariamente pessoas distintas.
+
+13. UM ENSAIO SIMPLES PARA ENTENDER O FLUXO
+
+1. Iniciar API e criar a base demo conforme o README.
+2. Habny entra no desktop como organizador.
+3. Carlos ou Matheus Lima entra no site como participante@demo.local.
+4. Selecionar o evento “JAVA8 — Demonstração”. O participante demo já está inscrito na primeira atividade.
+5. Habny seleciona a primeira atividade no desktop e gera um QR de CHECK_IN.
+6. Salvar a imagem e enviá-la pelo formulário de presença do site dentro dos cinco minutos.
+7. Selecionar a mesma atividade na área de avaliação e responder o questionário.
+8. Tentar enviar novamente e conferir a mensagem de duplicidade.
+9. No desktop, registrar uma correção manual com justificativa e exportar a frequência.
+10. Conferir os registros e comparar o CSV com o que aconteceu.
+
+Para demonstrar a criação de evento, use um NOVO rascunho; o evento demo já vem publicado. Configure programação e regras antes de publicar.
+
+Para conferir API sem depender das telas, com o servidor em execução:
+
+python3 scripts/demo-api.py
+
+Para medir as consultas com a base demo:
+
+python3 scripts/medir-api.py
+
+14. COMO TESTAR AS ALTERAÇÕES
+
+Backend:
+
+mvn test
+
+Desktop:
+
+mvn -f desktop/pom.xml package
+
+Web:
+- Iniciar a API, abrir o site e testar no navegador.
+- Recarregar a página depois de alterar HTML/JS/CSS; se necessário, usar recarga sem cache.
+- Conferir a aba Console e a aba Rede nas ferramentas do desenvolvedor se uma chamada falhar.
+- Testar uma operação correta e pelo menos uma situação inválida.
+
+Os testes Java usam banco em memória, separado de data/. A última validação da API está registrada em docs/validacao.md. Não presumir que compilar uma tela prova que todos os seus botões estão corretos: é preciso usar e conferir o resultado.
+
+15. PROBLEMAS COMUNS
+
+“java ou mvn não encontrado”
+Instalação/PATH não configurados. Confirmar java -version e mvn -version.
+
+“release version 21 not supported”
+O Maven está usando um JDK antigo. mvn -version mostra qual Java está sendo usado.
+
+“Connection refused” / site não abre
+A API não está rodando, foi fechada ou usa outra porta. Conferir o terminal da API.
+
+“Address already in use”
+Já existe um programa na porta. Encerrar a API anterior com Ctrl+C ou escolher outra porta conforme README.
+
+“Database may be already in use”
+Outra API ou carga demo está usando o mesmo arquivo H2. Encerrar a instância anterior antes de rodar --demo. Não executar duas APIs sobre a mesma base.
+
+“401” após reiniciar
+As sessões eram do processo anterior. Entrar novamente.
+
+“403” ao criar evento
+A conta é participante. Usar organizador/administrador para gestão.
+
+“Evento não aparece no site”
+Conferir se foi publicado. Rascunho não aparece para o público.
+
+“Não consigo editar a atividade”
+A programação já foi publicada. Esse bloqueio é intencional nesta versão. Trabalhar no rascunho antes de publicar.
+
+“Não consigo avaliar”
+Conferir se está inscrito na atividade/evento conforme a regra e se a presença foi validada. Não desativar essa regra no cliente.
+
+“Cancelamento fora do prazo”
+Conferir o prazo do evento. Não mudar a data do computador para contornar a regra; preparar uma base/evento de demonstração adequado.
+
+“Alterei o Java, mas o comportamento não mudou”
+Compilar novamente e reiniciar a API/JAR. O processo em execução não recarrega classes Java automaticamente.
+
+16. DADOS, ENDEREÇOS E COMPUTADORES DIFERENTES
+
+localhost significa “este computador”. Se cada integrante rodar sua própria API, cada um terá uma base separada. Para conferir integração no mesmo banco, desktop e site precisam apontar para a MESMA API.
+
+Para uso local individual, os padrões já funcionam. Para demonstração na rede, Matheus Rezende configura api.host e a porta; usar o endereço do computador que hospeda a API. O README mostra como mudar api.url do desktop. No site servido pela API, a base padrão é o próprio endereço da página.
+
+O banco em arquivo fica em data/. Não compartilhar dados reais de pessoas: a carga demo é fictícia. A aplicação só cria usuários demo quando --demo é pedido explicitamente.
+
+17. POO QUE PRECISAMOS SABER EXPLICAR
+
+ENCAPSULAMENTO
+O objeto controla suas mudanças válidas. Exemplo: Inscricao.cancelar muda o estado; uma inscrição cancelada não aceita alterar atividades.
+
+COMPOSIÇÃO
+Um objeto utiliza outro para realizar parte da tarefa. Exemplo: Pergunta possui um TipoResposta, e Frequencia usa uma PoliticaFrequencia.
+
+POLIMORFISMO
+A mesma chamada tem comportamentos diferentes conforme o objeto escolhido. Texto, EscolhaUnica e Escala respondem ao contrato TipoResposta, cada um validando de seu jeito.
+
+INTERFACE JAVA
+É um contrato de métodos. Não confundir com interface gráfica. UsuarioRepository diz o que o caso de uso precisa para salvar/buscar; a implementação JDBC cuida do banco.
+
+STRATEGY
+Permite trocar a estratégia de presença conforme a atividade: CheckInUnico, EntradaSaida ou ValidacaoManual. A tela configura a política; o domínio calcula.
+
+TEMPLATE METHOD
+Endpoint define uma sequência comum para tratar HTTP, erros e chamar executar. Cada handler novo define suas rotas dentro dessa sequência.
+
+CASO DE USO
+Coordena uma ação que precisa de vários objetos/repositórios. InscricaoService verifica a seleção e as vagas e pede ao repositório para salvar; não conhece Swing nem fetch.
+
+DTO / MENSAGEM
+Dados de entrada/saída usados para comunicação. JSON não é a entidade inteira e não deve expor senha/hash. O cliente recebe apenas o necessário para seu fluxo.
+
+TESTE
+Demonstra um comportamento esperado e uma falha relevante. UsuarioServiceTest troca o repositório por memória, mostrando que o caso de uso não depende da tela ou do banco.
+
+REFACTORAR
+Melhorar a organização preservando o comportamento necessário. Nesta entrega as regras de inscrição saíram do handler, os testes foram isolados do banco real e casos de uso passaram a depender de portas.
+
+Não decorar apenas os nomes: cada pessoa deve abrir as classes, seguir uma chamada real e explicar por que a solução foi escolhida. docs/arquitetura.md e docs/decisoes.md dão exemplos do nosso código.
+
+18. O QUE LEVAR PARA A APRESENTAÇÃO
+
+- Repositório com a versão publicada e contribuições reais.
+- Aplicação iniciando pelos comandos documentados.
+- Base preparada, contas e datas adequadas.
+- Fluxos CA-01 a CA-07 executados pelas interfaces finais.
+- Um caminho válido e um erro relevante em cada demonstração.
+- Testes selecionados, dois padrões justificados e exemplos de refatoração.
+- Limitações e pendências reais, sem declarar uma tela inexistente como pronta.
+
+O arquivo Evidencias contém textos de S1 a S7 para o campo “Observação do grupo”. Ele usa a versão atual como consolidação técnica; a data real da apresentação ao professor precisa ser informada pela equipe. Datas históricas não foram inventadas e o portal não foi preenchido automaticamente.
+
+COMECE AGORA
+1. Leia README e execute o sistema.
+2. Leia sua parte em Divisao.
+3. Faça o ensaio do item 13.
+4. Escolha a primeira tarefa da sua lista.
+5. Consulte docs/api.md para usar a rota correta.
+6. Implemente, teste sucesso/erro e registre a contribuição.

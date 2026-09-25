@@ -1,2 +1,13 @@
+/home/matheus/projetos/POOII/src/test/java/adapter/in/api/ApiIntegracaoTest.java
+/home/matheus/projetos/POOII/src/test/java/adapter/out/persistence/atividade/AtividadeRepositoryJdbcTest.java
 /home/matheus/projetos/POOII/src/test/java/adapter/out/persistence/evento/EventoRepositoryJdbcTest.java
+/home/matheus/projetos/POOII/src/test/java/adapter/out/persistence/inscricao/InscricaoRepositoryJdbcTest.java
+/home/matheus/projetos/POOII/src/test/java/adapter/out/persistence/usuario/UsuarioRepositoryJdbcTest.java
+/home/matheus/projetos/POOII/src/test/java/adapter/out/qr/QrCodeTest.java
+/home/matheus/projetos/POOII/src/test/java/application/usuario/UsuarioServiceTest.java
+/home/matheus/projetos/POOII/src/test/java/domain/atividade/AtividadeTest.java
+/home/matheus/projetos/POOII/src/test/java/domain/avaliacao/QuestionarioTest.java
 /home/matheus/projetos/POOII/src/test/java/domain/evento/EventoTest.java
+/home/matheus/projetos/POOII/src/test/java/domain/frequencia/FrequenciaTest.java
+/home/matheus/projetos/POOII/src/test/java/domain/inscricao/InscricaoTest.java
+/home/matheus/projetos/POOII/src/test/java/domain/usuario/UsuarioTest.java

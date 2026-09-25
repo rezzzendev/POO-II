@@ -1,8 +1,8 @@
 package domain.evento;
 
-public class EventoInvalidoException extends RuntimeException{
+public class EventoInvalidoException extends RuntimeException {
 
-    public EventoInvalidoException(String mensagem){
+    public EventoInvalidoException(String mensagem) {
         super(mensagem);
     }
 }

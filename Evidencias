@@ -1,0 +1,55 @@
+EVIDÊNCIAS — JAVA8 — POO II
+Consolidação técnica da versão local em 24/09/2026, até S7.
+
+COMO USAR
+Cada seção abaixo contém um texto para o campo “Observação do grupo” do requisito correspondente. Os textos descrevem a implementação atual e as verificações realizadas nesta entrega. Não significam que todos os recursos já estavam prontos nas datas históricas de cada semana. A data e o horário de apresentação ao professor ainda precisam ser informados por quem participou; não foram inventados.
+
+Matheus Rodrigues de Rezende informou ter desenvolvido a implementação preexistente, incluindo as bases de API, desktop e web. Esta consolidação recebeu assistência de IA. A divisão das próximas tarefas está no arquivo Divisao; não atribui trabalho passado aos demais integrantes.
+
+S1 — DOMÍNIO, RESPONSABILIDADES E BACKLOG
+Texto para “Observação do grupo”:
+
+Na versão consolidada em 24/09/2026, o projeto está organizado como uma plataforma de gestão de eventos em Java, sem framework de aplicação, com API HTTP, banco relacional H2 via JDBC, desktop Swing e site em HTML, CSS e JavaScript. O domínio utiliza os conceitos Usuario, Evento, Atividade, Inscricao, Frequencia e Questionario, com responsabilidades descritas em docs/arquitetura.md. A distribuição de trabalho para a próxima etapa está no arquivo Divisao. O caminho válido de demonstração consiste em iniciar a aplicação, criar um evento e consultar os dados persistidos. Como tratamento de erro, o domínio rejeita título obrigatório ausente e período inválido. EventoTest verifica invariantes e transições de estado. A decisão de POO é manter comportamento e validações nos objetos responsáveis, em vez de concentrá-los nas telas. A pendência atual é concluir as interfaces atribuídas a Habny, Carlos e Matheus Lima e conferir a integração em seus computadores. A próxima meta é executar o mesmo fluxo pelos dois clientes. Data/horário da apresentação ao professor: a confirmar.
+
+S2 — OBJETOS, INVARIANTES E PERSISTÊNCIA
+Texto para “Observação do grupo”:
+
+Na versão consolidada em 24/09/2026, eventos, atividades, usuários e inscrições são persistidos em banco relacional H2, com interfaces de repositório e implementações JDBC. Evento protege título, período e mudanças entre rascunho, publicado e encerrado; Atividade possui comportamento para detectar sobreposição de horários e verificar capacidade; Inscricao protege suas escolhas e o estado de cancelamento. RegrasInscricao representa uma configuração imutável de inscrição e prazo. O caminho válido é cadastrar e consultar dados persistidos; erros relevantes incluem período inválido e seleção de atividades em inscrição cancelada. Os testes de domínio e de repositório verificam esses comportamentos. A decisão de POO é separar os objetos do domínio da infraestrutura de persistência, preservando encapsulamento e interfaces pequenas. A criação do esquema está nos scripts src/main/resources/db, e os testes usam H2 em memória separado da base de demonstração. Pendência: validação das telas finais com esses mesmos dados. Próxima meta: consolidar os fluxos de gestão nos clientes. Data/horário da apresentação ao professor: a confirmar.
+
+S3 — CASOS DE USO, PORTAS E AUTENTICAÇÃO
+Texto para “Observação do grupo”:
+
+Na versão consolidada em 24/09/2026, a API oferece cadastro, login, consulta e edição do próprio perfil. O autocadastro sempre cria participante, as senhas são armazenadas por hash PBKDF2 com sal e as operações administrativas são autorizadas no servidor. UsuarioService coordena o caso de uso por meio da interface UsuarioRepository, sem dependência de HTTP, Swing ou JDBC. O caminho válido é cadastrar uma conta e autenticar com a senha correta. Os erros demonstráveis são e-mail duplicado, senha incorreta e tentativa de operação administrativa por participante. UsuarioServiceTest verifica cadastro, login e edição com um repositório em memória; ApiIntegracaoTest verifica as permissões por HTTP. A decisão de POO é inverter a dependência do caso de uso para uma porta e deixar a API responsável pelo protocolo e pela sessão. Pendência: completar as telas de perfil e administração dos clientes. Próxima meta: conferir cadastro e autenticação em toda a navegação. Data/horário da apresentação ao professor: a confirmar.
+
+S4 — ADAPTADORES, SITE PÚBLICO E INSCRIÇÃO
+Texto para “Observação do grupo”:
+
+Na versão consolidada em 24/09/2026, o site e o desktop utilizam a mesma API e o mesmo banco; os clientes não acessam a persistência diretamente. O site é servido pela API e permite consulta pública de eventos publicados, programação, cadastro e inscrição. O desktop possui uma base de gestão com criação de eventos e atividades e publicação. O caminho válido é publicar um evento e realizar uma inscrição com confirmação consultável. A repetição de uma inscrição ativa é rejeitada, e rascunhos não são exibidos ao público. ApiIntegracaoTest e scripts/demo-api.py verificam os fluxos HTTP e a persistência. A decisão de POO é manter JSON e transporte nos adaptadores e coordenar inscrição no caso de uso InscricaoService, usando os objetos do domínio e portas de repositório. Os clientes têm bases funcionais, mas ainda precisam das telas finais relacionadas no arquivo Divisao. Próxima meta: executar a integração completa por meio das interfaces finalizadas. Data/horário da apresentação ao professor: a confirmar.
+
+S5 — POLÍTICAS DE INSCRIÇÃO E AGENDA
+Texto para “Observação do grupo”:
+
+Na versão consolidada em 24/09/2026, a organização pode configurar inscrição somente no evento ou com escolha de atividades, ativar controle de vagas e definir prazo de cancelamento. A agenda é derivada das escolhas válidas, e conflitos de horário são bloqueados de forma consistente, considerando o fuso dos eventos. O caminho válido é selecionar atividades compatíveis, consultar a agenda e cancelar uma inscrição dentro do prazo, liberando a vaga. Os erros relevantes incluem atividade de outro evento, horários conflitantes, capacidade esgotada, prazo de cancelamento encerrado e alteração de inscrição cancelada. Os testes HTTP também verificam duas tentativas simultâneas de ocupar a última vaga. RegrasInscricao é um objeto de valor composto no caso de uso. O ponto real de variação polimórfica da versão atual está nas políticas de frequência, demonstradas por CheckInUnico, EntradaSaida e ValidacaoManual; não se afirma que essas classes já existiam na data histórica de S5. Pendência: concluir a tela administrativa de configuração. Próxima meta: integrar as políticas e a agenda aos fluxos finais dos clientes. Data/horário da apresentação ao professor: a confirmar.
+
+S6 — FREQUÊNCIA CONFIGURÁVEL
+Texto para “Observação do grupo”:
+
+Na versão consolidada em 24/09/2026, cada atividade pode usar check-in único, entrada e saída ou validação manual. A organização gera um QR Code real em PNG, e o participante inscrito pode enviar a imagem para leitura e registro na API. O código contém somente um token opaco, tem validade de cinco minutos e não expõe senha nem dados pessoais. O lançamento manual exige autorização e justificativa, preservando responsável, origem e instante; correções acrescentam registros e não apagam o histórico. O caminho válido é registrar presença pelo QR e consultar a situação calculada; também é possível corrigir manualmente a presença. Erros relevantes são QR expirado, marcação repetida, saída sem entrada e operação manual sem permissão. FrequenciaTest e ApiIntegracaoTest verificam estratégias, histórico, duplicidade e validade. A decisão de POO é aplicar Strategy por composição em Frequencia, mantendo o cálculo fora das telas. A política não pode mudar após existir frequência, evitando alteração silenciosa do histórico. Pendência: revisão visual e ensaio das operações no desktop e site da equipe. Próxima meta: utilizar a presença validada para habilitar avaliações. Data/horário da apresentação ao professor: a confirmar.
+
+S7 — AVALIAÇÕES, RELATÓRIOS E REFATORAÇÃO
+Texto para “Observação do grupo”:
+
+Na versão consolidada em 24/09/2026, a API permite criar questionários com título, perguntas textuais, escolha única e escala numérica. A avaliação exige inscrição e presença validada, todas as respostas são validadas e um participante não pode responder duas vezes ao mesmo questionário. A política de respostas identificadas é informada antes do envio e os resultados ficam restritos à organização. A API consolida quantidades, distribuições, médias de escala e comentários, além de emitir relatórios de inscritos e frequência com exportação CSV. O caminho válido é validar presença, responder o questionário e consultar o resultado. Erros relevantes são avaliação sem presença, resposta inválida, reenvio e consulta de resultados por participante. QuestionarioTest, ApiIntegracaoTest e scripts/demo-api.py verificam esses comportamentos.
+
+Em POO, Pergunta compõe TipoResposta para validar diferentes respostas por polimorfismo; Frequencia compõe suas estratégias. O segundo padrão justificado é Template Method em Endpoint, que centraliza o tratamento HTTP comum e permite aos handlers definir suas rotas. Na refatoração da inscrição, as regras de vagas, vínculo e conflitos saíram do handler e passaram para InscricaoService e RegrasInscricao; a gravação do agregado tornou-se transacional. Na refatoração de usuários e testes, UsuarioService passou a depender da porta UsuarioRepository e recebeu teste em memória, enquanto os testes JDBC foram separados do banco real. Os problemas, alternativas e efeitos estão em docs/decisoes.md. Permanecem para Habny o editor de questionários e as telas de consolidação/gestão do desktop; para Carlos e Matheus Lima, perfil e acabamento dos fluxos do site. A próxima meta é integrar essas telas e demonstrar CA-01 a CA-07 na S8. Data/horário da apresentação ao professor: a confirmar.
+
+REFERÊNCIAS LOCAIS PARA CONFERÊNCIA
+- README.md: execução, contas e testes.
+- docs/arquitetura.md: glossário e responsabilidades.
+- docs/decisoes.md: decisões D-01 a D-08 e refatorações.
+- docs/api.md: contrato da API.
+- docs/rastreabilidade.md: RF, ROO, RN, RNF e cenários.
+- docs/validacao.md: resultados efetivamente verificados.
+- scripts/demo-api.py: roteiro executável dos cenários pela API.
+
+A S8 não está respondida neste arquivo porque a entrega final ainda depende da conclusão e validação conjunta das interfaces. Para os itens de link, o remoto configurado é https://github.com/rezzzendev/POO-II; os artefatos novos precisam ser publicados com um commit real antes de informar links conferíveis ao professor.

@@ -22,6 +22,7 @@
         H2 embarcado (arquivo local) em vez de servidor: RNF-04/RNF-15.
     -->
     <dependencies>
+        <dependency><groupId>com.google.zxing</groupId><artifactId>core</artifactId><version>3.5.3</version></dependency>
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
@@ -42,6 +43,10 @@
 
     <build>
         <plugins>
+            <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><version>3.13.0</version></plugin>
+            <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId><version>3.2.5</version>
+                <configuration><systemPropertyVariables><db.url>jdbc:h2:mem:testes;DB_CLOSE_DELAY=-1</db.url></systemPropertyVariables></configuration>
+            </plugin>
             <!-- `mvn exec:java` sobe a API sem precisar empacotar o jar. -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>

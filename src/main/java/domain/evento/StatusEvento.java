@@ -1,8 +1,7 @@
 package domain.evento;
 
 public enum StatusEvento {
-
-        RASCUNHO,
-        PUBLICADO,
-        ENCERRADO
+    RASCUNHO,
+    PUBLICADO,
+    ENCERRADO
 }

@@ -31,3 +31,6 @@ bin/
 
 ### H2 (banco embarcado em arquivo) ###
 /data/
+# Artefatos gerados
+target/
+.idea/

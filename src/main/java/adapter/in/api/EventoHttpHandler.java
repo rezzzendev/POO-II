@@ -1,18 +1,19 @@
 package adapter.in.api;
 
 import application.evento.EventoRepository;
+
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+
 import domain.evento.Evento;
 import domain.evento.EventoInvalidoException;
 import domain.evento.Modalidade;
+import domain.usuario.Papel;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -20,36 +21,51 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
- * Um único contexto, "/eventos" — sem framework, quem resolve qual rota é
- * este handler mesmo, olhando pro método HTTP e pro caminho.
+ * Um único contexto, "/eventos" — sem framework, quem resolve qual rota é este handler mesmo,
+ * olhando pro método HTTP e pro caminho.
+ *
+ * <p>Leitura (GET) é pública (RF-10: visitante consulta sem login). Escrita exige Organizador ou
+ * Administrador — verificado aqui no servidor, não só escondido na tela (RNF-06).
  */
 public class EventoHttpHandler implements HttpHandler {
 
-    private final EventoRepository repository;
+    private static final Papel[] PODE_GERENCIAR_EVENTOS = {Papel.ORGANIZADOR, Papel.ADMINISTRADOR};
 
-    public EventoHttpHandler(EventoRepository repository) {
+    private final application.atividade.AtividadeRepository atividades;
+    private final EventoRepository repository;
+    private final Autenticador autenticador;
+
+    public EventoHttpHandler(
+            EventoRepository repository,
+            Autenticador autenticador,
+            application.atividade.AtividadeRepository atividades) {
+        this.atividades = atividades;
         this.repository = repository;
+        this.autenticador = autenticador;
     }
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-
-        if (exchange.getRequestMethod().equals("OPTIONS")) {
-            exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-            exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
-            exchange.sendResponseHeaders(204, -1);
+        if (HttpJson.tratarPreflight(exchange)) {
             return;
         }
 
         try {
             rotear(exchange);
         } catch (EventoInvalidoException | DateTimeParseException e) {
-            responder(exchange, 400, erro(e.getMessage()));
+            HttpJson.responder(exchange, 400, HttpJson.erro(e.getMessage()));
         } catch (NumberFormatException e) {
-            responder(exchange, 400, erro("Id do evento precisa ser um número."));
+            HttpJson.responder(exchange, 400, HttpJson.erro("Id do evento precisa ser um número."));
+        } catch (NaoAutenticadoException e) {
+            HttpJson.responder(exchange, 401, HttpJson.erro(e.getMessage()));
+        } catch (NaoAutorizadoException e) {
+            HttpJson.responder(exchange, 403, HttpJson.erro(e.getMessage()));
+        } catch (IllegalArgumentException
+                | org.json.JSONException
+                | java.time.DateTimeException e) {
+            HttpJson.responder(exchange, 400, HttpJson.erro(e.getMessage()));
         } catch (Exception e) {
-            responder(exchange, 500, erro("Erro interno: " + e.getMessage()));
+            HttpJson.falhaInterna(exchange, e);
         }
     }
 
@@ -58,84 +74,141 @@ public class EventoHttpHandler implements HttpHandler {
         String[] partes = caminho(exchange);
 
         if (partes.length == 0) {
-            if (metodo.equals("GET")) { listar(exchange); return; }
-            if (metodo.equals("POST")) { criar(exchange); return; }
+            if (metodo.equals("GET")) {
+                listar(exchange);
+                return;
+            }
+            if (metodo.equals("POST")) {
+                criar(exchange);
+                return;
+            }
         } else if (partes.length == 1) {
             Long id = Long.valueOf(partes[0]);
-            if (metodo.equals("GET")) { buscar(exchange, id); return; }
-            if (metodo.equals("PUT")) { editar(exchange, id); return; }
-            if (metodo.equals("DELETE")) { remover(exchange, id); return; }
+            if (metodo.equals("GET")) {
+                buscar(exchange, id);
+                return;
+            }
+            if (metodo.equals("PUT")) {
+                editar(exchange, id);
+                return;
+            }
+            if (metodo.equals("DELETE")) {
+                remover(exchange, id);
+                return;
+            }
         } else if (partes.length == 2) {
             Long id = Long.valueOf(partes[0]);
-            if (metodo.equals("POST") && partes[1].equals("publicar")) { transicionar(exchange, id, Evento::publicar); return; }
-            if (metodo.equals("POST") && partes[1].equals("encerrar")) { transicionar(exchange, id, Evento::encerrar); return; }
+            if (metodo.equals("POST") && partes[1].equals("publicar")) {
+                transicionar(exchange, id, Evento::publicar);
+                return;
+            }
+            if (metodo.equals("POST") && partes[1].equals("encerrar")) {
+                transicionar(exchange, id, Evento::encerrar);
+                return;
+            }
         }
 
-        responder(exchange, 404, erro("Rota não encontrada."));
+        HttpJson.responder(exchange, 404, HttpJson.erro("Rota não encontrada."));
     }
 
     private void listar(HttpExchange exchange) throws IOException {
         List<Evento> eventos = repository.listarTodos();
         JSONArray json = new JSONArray();
-        eventos.forEach(evento -> json.put(paraJson(evento)));
-        responder(exchange, 200, json);
+        boolean gestor = autenticador.podeGerenciar(exchange);
+        eventos.stream()
+                .filter(e -> gestor || e.getStatus() == domain.evento.StatusEvento.PUBLICADO)
+                .forEach(evento -> json.put(paraJson(evento)));
+        HttpJson.responder(exchange, 200, json);
     }
 
     private void criar(HttpExchange exchange) throws IOException {
-        JSONObject corpo = lerCorpo(exchange);
-        Evento evento = Evento.novo(
-                corpo.optString("titulo", null),
-                corpo.optString("descricao", null),
-                data(corpo, "inicio"),
-                data(corpo, "fim"),
-                modalidade(corpo)
-        );
-        responder(exchange, 201, paraJson(repository.salvar(evento)));
+        autenticador.exigir(exchange, PODE_GERENCIAR_EVENTOS);
+
+        JSONObject corpo = HttpJson.lerCorpo(exchange);
+        Evento evento =
+                Evento.novo(
+                        corpo.optString("titulo", null),
+                        corpo.optString("descricao", null),
+                        data(corpo, "inicio"),
+                        data(corpo, "fim"),
+                        modalidade(corpo));
+        evento.definirLocalEFuso(
+                corpo.optString("local", "A definir"),
+                corpo.optString("fuso", "America/Sao_Paulo"));
+        HttpJson.responder(exchange, 201, paraJson(repository.salvar(evento)));
     }
 
     private void buscar(HttpExchange exchange, Long id) throws IOException {
         Optional<Evento> evento = repository.buscarPorId(id);
-        if (evento.isEmpty()) {
-            responder(exchange, 404, erro("Evento " + id + " não encontrado."));
+        if (evento.isEmpty()
+                || (!autenticador.podeGerenciar(exchange)
+                        && evento.get().getStatus() != domain.evento.StatusEvento.PUBLICADO)) {
+            HttpJson.responder(exchange, 404, HttpJson.erro("Evento " + id + " não encontrado."));
             return;
         }
-        responder(exchange, 200, paraJson(evento.get()));
+        HttpJson.responder(exchange, 200, paraJson(evento.get()));
     }
 
     private void editar(HttpExchange exchange, Long id) throws IOException {
+        autenticador.exigir(exchange, PODE_GERENCIAR_EVENTOS);
+
         Optional<Evento> existente = repository.buscarPorId(id);
         if (existente.isEmpty()) {
-            responder(exchange, 404, erro("Evento " + id + " não encontrado."));
+            HttpJson.responder(exchange, 404, HttpJson.erro("Evento " + id + " não encontrado."));
             return;
         }
-        JSONObject corpo = lerCorpo(exchange);
+        JSONObject corpo = HttpJson.lerCorpo(exchange);
         Evento evento = existente.get();
+        var inicio = data(corpo, "inicio");
+        var fim = data(corpo, "fim");
+        for (var atividade : atividades.listarPorEvento(id)) {
+            if (inicio == null
+                    || fim == null
+                    || atividade.getInicio().isBefore(inicio)
+                    || atividade.getFim().isAfter(fim))
+                throw new EventoInvalidoException(
+                        "O período precisa abranger as atividades já cadastradas.");
+        }
+        if (corpo.has("fuso") && !corpo.getString("fuso").equals(evento.getFuso().getId()))
+            throw new EventoInvalidoException(
+                    "O fuso é definido na criação do evento e não pode ser alterado.");
+        evento.definirLocalEFuso(
+                corpo.optString("local", evento.getLocal()), evento.getFuso().getId());
         evento.editar(
                 corpo.optString("titulo", null),
                 corpo.optString("descricao", null),
                 data(corpo, "inicio"),
                 data(corpo, "fim"),
-                modalidade(corpo)
-        );
-        responder(exchange, 200, paraJson(repository.salvar(evento)));
+                modalidade(corpo));
+        HttpJson.responder(exchange, 200, paraJson(repository.salvar(evento)));
     }
 
-    private void transicionar(HttpExchange exchange, Long id, Consumer<Evento> transicao) throws IOException {
+    private void transicionar(HttpExchange exchange, Long id, Consumer<Evento> transicao)
+            throws IOException {
+        autenticador.exigir(exchange, PODE_GERENCIAR_EVENTOS);
+
         Optional<Evento> existente = repository.buscarPorId(id);
         if (existente.isEmpty()) {
-            responder(exchange, 404, erro("Evento " + id + " não encontrado."));
+            HttpJson.responder(exchange, 404, HttpJson.erro("Evento " + id + " não encontrado."));
             return;
         }
         Evento evento = existente.get();
         transicao.accept(evento);
-        responder(exchange, 200, paraJson(repository.salvar(evento)));
+        HttpJson.responder(exchange, 200, paraJson(repository.salvar(evento)));
     }
 
     private void remover(HttpExchange exchange, Long id) throws IOException {
+        autenticador.exigir(exchange, PODE_GERENCIAR_EVENTOS);
+
         if (repository.buscarPorId(id).isEmpty()) {
-            responder(exchange, 404, erro("Evento " + id + " não encontrado."));
+            HttpJson.responder(exchange, 404, HttpJson.erro("Evento " + id + " não encontrado."));
             return;
         }
+        if (repository.buscarPorId(id).orElseThrow().getStatus()
+                != domain.evento.StatusEvento.RASCUNHO)
+            throw new EventoInvalidoException(
+                    "Somente rascunhos podem ser removidos. Encerre o evento para preservar o"
+                            + " histórico.");
         repository.remover(id);
         exchange.sendResponseHeaders(204, -1);
         exchange.close();
@@ -160,6 +233,8 @@ public class EventoHttpHandler implements HttpHandler {
 
     private JSONObject paraJson(Evento evento) {
         JSONObject json = new JSONObject();
+        json.put("local", evento.getLocal());
+        json.put("fuso", evento.getFuso().getId());
         json.put("id", evento.getId());
         json.put("titulo", evento.getTitulo());
         json.put("descricao", evento.getDescricao());
@@ -173,25 +248,5 @@ public class EventoHttpHandler implements HttpHandler {
     private String[] caminho(HttpExchange exchange) {
         String resto = exchange.getRequestURI().getPath().replaceFirst("^/eventos/?", "");
         return resto.isBlank() ? new String[0] : resto.split("/");
-    }
-
-    private JSONObject lerCorpo(HttpExchange exchange) throws IOException {
-        try (InputStream entrada = exchange.getRequestBody()) {
-            String texto = new String(entrada.readAllBytes(), StandardCharsets.UTF_8);
-            return texto.isBlank() ? new JSONObject() : new JSONObject(texto);
-        }
-    }
-
-    private void responder(HttpExchange exchange, int status, Object corpo) throws IOException {
-        byte[] bytes = corpo.toString().getBytes(StandardCharsets.UTF_8);
-        exchange.getResponseHeaders().add("Content-Type", "application/json; charset=utf-8");
-        exchange.sendResponseHeaders(status, bytes.length);
-        try (OutputStream saida = exchange.getResponseBody()) {
-            saida.write(bytes);
-        }
-    }
-
-    private JSONObject erro(String mensagem) {
-        return new JSONObject().put("erro", mensagem);
     }
 }

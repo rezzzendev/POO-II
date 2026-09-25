@@ -1,0 +1,120 @@
+DIVISÃO DE RESPONSABILIDADES — PLATAFORMA DE GESTÃO DE EVENTOS
+Atualizada em 24/09/2026 conforme orientação de Matheus Rodrigues de Rezende.
+
+Esta divisão vale para o trabalho a partir da base entregue hoje. Matheus Rezende informou ter feito a implementação anterior da API, desktop e web. As tarefas abaixo não atribuem esse trabalho passado aos demais integrantes.
+
+1. MATHEUS RODRIGUES DE REZENDE — API E APOIO À INTEGRAÇÃO
+
+Responsável por:
+- Código Java do backend, objetos do domínio e regras de negócio.
+- Banco H2, persistência JDBC e migrações.
+- Cadastro, autenticação e autorização no servidor.
+- Eventos, atividades, inscrições, vagas, cancelamento e agenda.
+- Frequência, QR Code, correções manuais e histórico.
+- Questionários, elegibilidade, consolidações e relatórios.
+- Testes automatizados, dados de demonstração e documentação da API.
+- Apoiar os clientes e corrigir problemas de integração encontrados pela equipe.
+
+O que já está entregue nesta base:
+A API do núcleo obrigatório, a carga de demonstração, os testes, a documentação, uma base administrativa Swing e uma base web funcional. O README explica a execução; docs/api.md explica o contrato. A validação está em docs/validacao.md.
+
+Próxima responsabilidade:
+Acompanhar a integração, explicar as decisões de POO e preparar a demonstração da API. As datas e o relato das apresentações ao professor devem ser preenchidos com fatos reais no arquivo Evidencias.
+
+2. HABNY GABRIEL DE BASTOS BATISTA — DESKTOP ADMINISTRATIVO
+
+Pasta principal: desktop/src/main/java/
+Arquivos iniciais: LoginScreen.java, DesktopApp.java, AtividadesDialog.java, EventoApiClient.java e TarefaTela.java.
+
+O que já existe:
+- Login e cadastro.
+- Lista e criação de eventos, publicação e encerramento.
+- Lista e criação de atividades em evento rascunho.
+- Configuração da política de frequência.
+- Geração e salvamento da imagem do QR Code.
+- Lançamento e correção manual de presença com justificativa.
+- Exportação de frequência em CSV.
+
+O que Habny deve fazer, nesta ordem:
+1. Rodar a API e o desktop seguindo o README e testar o que já existe.
+2. Completar o formulário de evento: local e fuso na criação, edição dos dados enquanto estiver em rascunho e apresentação amigável de datas.
+3. Completar edição e remoção de atividades em rascunho; acrescentar vínculo de pessoas com seus papéis.
+4. Criar a tela de regras de inscrição: permitir escolha de atividades, controlar vagas e definir prazo de cancelamento.
+5. Criar o editor de questionários: título, perguntas de texto, escolha única e escala. O questionário é enviado pronto à API; não é editável depois da criação nesta versão.
+6. Criar tela de resultados das avaliações e consulta de relatórios de inscritos/frequência, com filtros e totalizações.
+7. Melhorar feedback, estados de carregamento e bloqueio de cliques repetidos; usar TarefaTela para chamadas HTTP fora da thread gráfica.
+8. Acrescentar tela administrativa de alteração de papéis, usando o endpoint existente e respeitando a permissão de administrador.
+
+Entrega esperada:
+Conseguir montar evento e programação, publicar, configurar frequência e questionário, gerar QR, corrigir presença, consultar resultados e exportar relatório pela interface. Demonstrar um erro relevante, como conflito ou falta de permissão.
+
+3. CARLOS DANIEL DA SILVA SANTOS — WEB PÚBLICO, CONTA E ESTRUTURA VISUAL
+
+Pasta principal: web/
+Arquivos iniciais: index.html, style.css, api.js e app.js.
+
+O que já existe:
+Consulta de eventos, programação e pessoas, filtros, login e cadastro. A base já consome a API real.
+
+O que Carlos deve fazer, nesta ordem:
+1. Rodar o site pela API e entender index.html, style.css, api.js e app.js.
+2. Melhorar a página pública de eventos e a programação: organização visual, informações de local/período, pessoas vinculadas e filtros.
+3. Melhorar cadastro e login, com mensagens claras de sucesso, erro e carregamento.
+4. Implementar consulta/edição do perfil com GET e PUT /usuarios/me.
+5. Melhorar navegação, organização das seções, responsividade e acessibilidade por teclado.
+6. Exibir datas com o fuso retornado pela API e tratar sessão inválida/expirada.
+7. Combinar com Matheus Lima a estrutura visual dos componentes para manter o site consistente.
+
+Entrega esperada:
+Um visitante consegue encontrar o evento, entender a programação, criar conta, entrar e atualizar o perfil, com feedback compreensível e funcionamento em telas menores.
+
+4. MATHEUS LIMA — WEB DO PARTICIPANTE
+
+Não confundir com Matheus Rodrigues de Rezende, responsável pela API.
+Pasta principal: web/
+Arquivos iniciais: api.js e os fluxos de inscrição, agenda, presença e avaliação em app.js.
+
+O que já existe:
+Inscrição, seleção/troca de atividades, agenda, cancelamento, envio da imagem do QR Code e formulário dinâmico de avaliação com três tipos de resposta.
+
+O que Matheus Lima deve fazer, nesta ordem:
+1. Rodar a base, entrar como participante e testar os fluxos já implementados.
+2. Melhorar a confirmação da inscrição e a exibição das atividades já escolhidas.
+3. Preservar/recuperar seleção ao filtrar a programação e tornar clara a troca de atividades.
+4. Melhorar a agenda e o cancelamento, apresentando prazo e mensagens de conflito/vagas devolvidas pela API.
+5. Exibir a situação da frequência e melhorar o envio da imagem do QR Code, com confirmação e tratamento de arquivo inválido.
+6. Melhorar o questionário e informar claramente quando a avaliação foi enviada, quando falta presença e quando já existe resposta.
+7. Exibir a política de identificação das respostas antes do envio e respeitar os limites/tipos retornados pela API.
+8. Testar o fluxo completo do participante, inclusive tentativas inválidas, em conjunto com Carlos.
+
+Entrega esperada:
+O participante se inscreve, organiza sua agenda, registra presença e avalia quando elegível, entendendo também por que uma operação foi recusada.
+
+5. COMO CARLOS E MATHEUS LIMA EVITAM CONFLITOS NO WEB
+
+- Carlos começa pelas seções de conta/programação, HTML e estilo geral.
+- Matheus Lima começa pelos fluxos de inscrição/agenda/presença/avaliação.
+- Ambos usam Api de web/api.js; combinar antes de alterar os mesmos métodos.
+- Antes de editar o mesmo trecho de app.js ou index.html, combinar quem faz a alteração.
+- Se separarem app.js em novos módulos, Matheus Rezende precisa incluir os arquivos na lista permitida de SiteHttpHandler. Arquivos novos não são servidos automaticamente.
+- Não criar outro banco ou regras concorrentes em JavaScript.
+
+6. REGRAS PARA TODOS
+
+- Ler README e Explicacao antes de começar.
+- Não usar framework de aplicação: backend Java puro, Swing no desktop, HTML/CSS/JavaScript no web.
+- Todas as telas usam a mesma API. Apenas o backend acessa o H2.
+- Regras de vagas, presença e elegibilidade são decididas na API.
+- Não alterar contratos da API sem combinar com Matheus Rezende.
+- Testar o caminho válido e pelo menos uma falha da própria funcionalidade.
+- Registrar commits reais e explicar o que foi implementado. Não atribuir contribuições retroativas.
+- Não declarar S8 concluída antes da validação conjunta das interfaces.
+
+7. SEQUÊNCIA SUGERIDA
+
+24/09: cada integrante executa a base e identifica seus arquivos.
+25 a 27/09: Habny termina as telas administrativas; Carlos e Matheus Lima completam o site; Matheus Rezende apoia a API e a integração.
+28/09: juntar as alterações, executar testes e ensaiar os cenários CA-01 a CA-07.
+29/09: demonstração prevista no cronograma; confirmar data e horário com o professor. Há orientação prevista em 01/10.
+
+As datas intermediárias são planejamento sugerido da equipe, não prazos confirmados pelo docente.

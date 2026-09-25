@@ -1,8 +1,14 @@
 package adapter.out.persistence.evento;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import adapter.out.persistence.ConnectionFactory;
+
 import domain.evento.Evento;
 import domain.evento.Modalidade;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -13,10 +19,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 class EventoRepositoryJdbcTest {
 
     private final EventoRepositoryJdbc repository = new EventoRepositoryJdbc();
@@ -24,17 +26,20 @@ class EventoRepositoryJdbcTest {
     @BeforeEach
     void limparTabela() throws SQLException {
         try (Connection conn = ConnectionFactory.getConnection();
-             Statement stmt = conn.createStatement()) {
-            stmt.execute("TRUNCATE TABLE eventos");
+                Statement stmt = conn.createStatement()) {
+            stmt.execute("DELETE FROM eventos");
         }
     }
 
     @Test
     void salvaEBuscaPorId() {
-        Evento evento = Evento.novo("Semana de Tecnologia", "Palestras e oficinas",
-                LocalDateTime.of(2026, 10, 1, 9, 0),
-                LocalDateTime.of(2026, 10, 1, 18, 0),
-                Modalidade.PRESENCIAL);
+        Evento evento =
+                Evento.novo(
+                        "Semana de Tecnologia",
+                        "Palestras e oficinas",
+                        LocalDateTime.of(2026, 10, 1, 9, 0),
+                        LocalDateTime.of(2026, 10, 1, 18, 0),
+                        Modalidade.PRESENCIAL);
 
         Evento salvo = repository.salvar(evento);
 
@@ -53,14 +58,20 @@ class EventoRepositoryJdbcTest {
 
     @Test
     void listaTodosOrdenadosPeloInicio() {
-        repository.salvar(Evento.novo("Evento B", null,
-                LocalDateTime.of(2026, 12, 1, 9, 0),
-                LocalDateTime.of(2026, 12, 1, 12, 0),
-                Modalidade.HIBRIDO));
-        repository.salvar(Evento.novo("Evento A", null,
-                LocalDateTime.of(2026, 11, 1, 9, 0),
-                LocalDateTime.of(2026, 11, 1, 12, 0),
-                Modalidade.ONLINE));
+        repository.salvar(
+                Evento.novo(
+                        "Evento B",
+                        null,
+                        LocalDateTime.of(2026, 12, 1, 9, 0),
+                        LocalDateTime.of(2026, 12, 1, 12, 0),
+                        Modalidade.HIBRIDO));
+        repository.salvar(
+                Evento.novo(
+                        "Evento A",
+                        null,
+                        LocalDateTime.of(2026, 11, 1, 9, 0),
+                        LocalDateTime.of(2026, 11, 1, 12, 0),
+                        Modalidade.ONLINE));
 
         List<Evento> todos = repository.listarTodos();
 
@@ -71,10 +82,14 @@ class EventoRepositoryJdbcTest {
 
     @Test
     void removeEvento() {
-        Evento salvo = repository.salvar(Evento.novo("Evento a remover", null,
-                LocalDateTime.of(2026, 10, 1, 9, 0),
-                LocalDateTime.of(2026, 10, 1, 12, 0),
-                Modalidade.ONLINE));
+        Evento salvo =
+                repository.salvar(
+                        Evento.novo(
+                                "Evento a remover",
+                                null,
+                                LocalDateTime.of(2026, 10, 1, 9, 0),
+                                LocalDateTime.of(2026, 10, 1, 12, 0),
+                                Modalidade.ONLINE));
 
         repository.remover(salvo.getId());
 

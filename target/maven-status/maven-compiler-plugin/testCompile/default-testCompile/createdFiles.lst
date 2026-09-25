@@ -1,2 +1,14 @@
+adapter/out/qr/QrCodeTest.class
+domain/inscricao/InscricaoTest.class
+application/usuario/UsuarioServiceTest$1.class
+adapter/out/persistence/inscricao/InscricaoRepositoryJdbcTest.class
+domain/avaliacao/QuestionarioTest.class
+adapter/in/api/ApiIntegracaoTest.class
 adapter/out/persistence/evento/EventoRepositoryJdbcTest.class
+domain/frequencia/FrequenciaTest.class
+adapter/out/persistence/atividade/AtividadeRepositoryJdbcTest.class
+domain/atividade/AtividadeTest.class
+adapter/out/persistence/usuario/UsuarioRepositoryJdbcTest.class
 domain/evento/EventoTest.class
+domain/usuario/UsuarioTest.class
+application/usuario/UsuarioServiceTest.class

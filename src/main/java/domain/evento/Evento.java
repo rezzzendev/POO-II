@@ -1,6 +1,7 @@
 package domain.evento;
 
 import java.time.LocalDateTime;
+
 /*
     Entidade Eventos
     Autor: Matheus Rezende
@@ -10,6 +11,25 @@ import java.time.LocalDateTime;
 */
 public class Evento {
 
+    private String local = "A definir";
+    private java.time.ZoneId fuso = java.time.ZoneId.of("America/Sao_Paulo");
+
+    public String getLocal() {
+        return local;
+    }
+
+    public java.time.ZoneId getFuso() {
+        return fuso;
+    }
+
+    public void definirLocalEFuso(String local, String fuso) {
+        if (local == null || local.isBlank() || local.length() > 255)
+            throw new EventoInvalidoException("Local obrigatório.");
+        java.time.ZoneId zona = java.time.ZoneId.of(fuso);
+        this.local = local;
+        this.fuso = zona;
+    }
+
     private Long id;
     private String titulo;
     private String descricao;
@@ -18,26 +38,47 @@ public class Evento {
     private Modalidade modalidade;
     private StatusEvento status;
 
-    public Evento(Long id, String titulo, String descricao, LocalDateTime inicio, LocalDateTime fim, Modalidade modalidade, StatusEvento status){
+    public Evento(
+            Long id,
+            String titulo,
+            String descricao,
+            LocalDateTime inicio,
+            LocalDateTime fim,
+            Modalidade modalidade,
+            StatusEvento status) {
+        if (descricao != null && descricao.length() > 2000)
+            throw new EventoInvalidoException("Descrição deve ter até 2000 caracteres.");
         validar(titulo, inicio, fim, modalidade);
 
         this.id = id;
         this.titulo = titulo;
         this.descricao = descricao;
         this.inicio = inicio;
-        this.fim  = fim;
+        this.fim = fim;
         this.modalidade = modalidade;
         this.status = status;
     }
 
-    public static Evento novo(String titulo, String descricao, LocalDateTime inicio, LocalDateTime fim, Modalidade modalidade){
+    public static Evento novo(
+            String titulo,
+            String descricao,
+            LocalDateTime inicio,
+            LocalDateTime fim,
+            Modalidade modalidade) {
         return new Evento(null, titulo, descricao, inicio, fim, modalidade, StatusEvento.RASCUNHO);
     }
 
-    public void editar(String titulo, String descricao, LocalDateTime inicio, LocalDateTime fim, Modalidade modalidade){
+    public void editar(
+            String titulo,
+            String descricao,
+            LocalDateTime inicio,
+            LocalDateTime fim,
+            Modalidade modalidade) {
         if (status != StatusEvento.RASCUNHO) {
             throw new EventoInvalidoException("Só é possível editar um evento em rascunho.");
         }
+        if (descricao != null && descricao.length() > 2000)
+            throw new EventoInvalidoException("Descrição deve ter até 2000 caracteres.");
         validar(titulo, inicio, fim, modalidade);
 
         this.titulo = titulo;
@@ -47,22 +88,23 @@ public class Evento {
         this.modalidade = modalidade;
     }
 
-    public void publicar(){
+    public void publicar() {
         if (status != StatusEvento.RASCUNHO) {
             throw new EventoInvalidoException("Só é possível publicar um evento em rascunho.");
         }
         this.status = StatusEvento.PUBLICADO;
     }
 
-    public void encerrar(){
+    public void encerrar() {
         if (status != StatusEvento.PUBLICADO) {
             throw new EventoInvalidoException("Só é possível encerrar um evento publicado.");
         }
         this.status = StatusEvento.ENCERRADO;
     }
 
-    private static void validar(String titulo, LocalDateTime inicio, LocalDateTime fim, Modalidade modalidade){
-        if (titulo == null || titulo.isBlank()) {
+    private static void validar(
+            String titulo, LocalDateTime inicio, LocalDateTime fim, Modalidade modalidade) {
+        if (titulo == null || titulo.isBlank() || titulo.length() > 255) {
             throw new EventoInvalidoException("Título do evento é obrigatório.");
         }
         if (modalidade == null) {
@@ -73,13 +115,33 @@ public class Evento {
         }
     }
 
-    public Long getId(){return id;}
-    public String getTitulo(){return titulo;}
-    public String getDescricao(){return descricao;}
-    public LocalDateTime getInicio(){return inicio;}
-    public LocalDateTime getFim(){return fim;}
-    public Modalidade getModalidade(){return modalidade;}
-    public StatusEvento getStatus(){return status;}
+    public Long getId() {
+        return id;
+    }
+
+    public String getTitulo() {
+        return titulo;
+    }
+
+    public String getDescricao() {
+        return descricao;
+    }
+
+    public LocalDateTime getInicio() {
+        return inicio;
+    }
+
+    public LocalDateTime getFim() {
+        return fim;
+    }
+
+    public Modalidade getModalidade() {
+        return modalidade;
+    }
+
+    public StatusEvento getStatus() {
+        return status;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -96,11 +158,16 @@ public class Evento {
 
     @Override
     public String toString() {
-        return "Evento{" +
-                "id=" + id +
-                ", titulo='" + titulo + '\'' +
-                ", modalidade=" + modalidade +
-                ", status=" + status +
-                '}';
+        return "Evento{"
+                + "id="
+                + id
+                + ", titulo='"
+                + titulo
+                + '\''
+                + ", modalidade="
+                + modalidade
+                + ", status="
+                + status
+                + '}';
     }
 }
