@@ -3,6 +3,8 @@ AtividadesDialog.class
 EventoApiClient.class
 TarefaTela.class
 DesktopApp$1.class
+QuestionariosDialog$1.class
+QuestionariosDialog.class
 TarefaTela$1.class
 DesktopApp.class
 LoginScreen.class

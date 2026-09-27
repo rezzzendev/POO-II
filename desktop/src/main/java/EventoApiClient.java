@@ -137,6 +137,22 @@ public class EventoApiClient {
                         .put("justificativa", justificativa));
     }
 
+    public JSONArray questionarios(long atividadeId) throws IOException, InterruptedException {
+        return new JSONArray(
+                requisicao("GET", "/questionarios?atividadeId=" + atividadeId, null));
+    }
+
+    public JSONObject criarQuestionario(JSONObject corpo)
+            throws IOException, InterruptedException {
+        return new JSONObject(requisicao("POST", "/questionarios", corpo));
+    }
+
+    public JSONObject resultadosQuestionario(long questionarioId)
+            throws IOException, InterruptedException {
+        return new JSONObject(
+                requisicao("GET", "/questionarios/" + questionarioId + "/resultados", null));
+    }
+
     public String relatorio(long eventoId, String tipo, boolean csv)
             throws IOException, InterruptedException {
         return requisicao(

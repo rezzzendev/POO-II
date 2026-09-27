@@ -37,7 +37,7 @@ Chrome em modo headless acessou o site servido pela API local. Foi verificado no
 - Upload de arquivo PNG do QR, leitura e confirmação de presença.
 - Envio de avaliação válida e mensagem ao tentar responder novamente.
 
-O desktop foi compilado, mas não houve inspeção interativa de todas as janelas Swing. Habny precisa ensaiar as operações gráficas e concluir suas telas; Carlos e Matheus Lima precisam finalizar o site e revisar usabilidade/responsividade. A S8 permanece uma entrega do grupo a validar.
+O desktop foi compilado, mas não houve inspeção interativa de todas as janelas Swing. A tela de atividades agora inclui criação de questionários e consulta de resultados, ainda pendentes de conferência manual. A equipe também precisa revisar os fluxos e a usabilidade/responsividade do site. A S8 permanece uma entrega do grupo a validar.
 
 ## Volume e medição local
 
@@ -59,3 +59,7 @@ Medição local, com banco aquecido, na máquina desta sessão. Não é teste de
 Os arquivos `Divisao` e `Evidencias` estão na raiz. O segundo responde S1 a S7 como consolidação técnica atual, com a data de apresentação ao professor explicitamente a confirmar. Nenhuma evidência foi submetida ao portal. Nenhum commit ou push foi realizado nesta sessão; links definitivos precisam apontar para uma versão efetivamente publicada.
 
 O repositório já tinha mudanças locais e arquivos `target/` rastreados antes desta sessão. O `.gitignore` foi atualizado para novos artefatos, mas o histórico/índice Git não foi reescrito. Ao preparar o commit, revisar os arquivos gerados já rastreados; os JARs podem ser reconstruídos pelo Maven.
+
+## Revalidação da API — 27/09/2026
+
+Após a validação anterior, `mvn test` e `mvn package` foram executados novamente: **72 testes passaram, sem falhas ou erros**. O roteiro `python3 scripts/demo-api.py --base http://localhost:18080` também foi executado contra uma base H2 temporária em `/tmp`; CA-01 a CA-07 passaram, incluindo inscrição duplicada, agenda, QR, correção manual, avaliação, relatório e CSV. Essa execução confirma os fluxos da API; não substitui a demonstração das interfaces do grupo.

@@ -32,6 +32,7 @@ public class AtividadesDialog extends JDialog {
         botao(botoes, "Política de frequência", this::politica);
         botao(botoes, "Gerar QR Code", this::qr);
         botao(botoes, "Presença manual", this::manual);
+        botao(botoes, "Questionários", this::questionarios);
         add(botoes, BorderLayout.SOUTH);
         carregar();
     }
@@ -242,5 +243,10 @@ public class AtividadesDialog extends JDialog {
                                                 this, "Presença registrada com autoria."));
                     }
                 });
+    }
+
+    private void questionarios() {
+        Long id = selecionada();
+        if (id != null) new QuestionariosDialog((JFrame) getOwner(), api, id).setVisible(true);
     }
 }

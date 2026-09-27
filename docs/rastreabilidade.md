@@ -31,11 +31,11 @@ Legenda: **M** obrigatório, **D** desejável, **P** opcional. Fontes: especific
 | 21 Ler QR | M | QrCode.ler, FrequenciaService | HTTP lê imagem; teste de navegador envia arquivo | API e site |
 | 22 Lançamento manual | M | RegistroFrequencia, FrequenciaService.manual | Teste de correções com autoria/histórico | API e desktop |
 | 23 Calcular presença | M | Frequencia + Strategy | FrequenciaTest: check-in, entrada/saída, manual | API |
-| 24 Questionário | M | Questionario, AvaliacaoService, AvaliacaoRepositoryJdbc | QuestionarioTest, ApiIntegracaoTest | API; editor desktop pendente |
+| 24 Questionário | M | Questionario, AvaliacaoService, AvaliacaoRepositoryJdbc | QuestionarioTest, ApiIntegracaoTest | API e criação pelo desktop; conferência visual pendente |
 | 25 Tipos de resposta | M | Pergunta, Texto, EscolhaUnica, Escala | QuestionarioTest; persistência HTTP dos três tipos | API e formulário web |
 | 26 Elegibilidade | M | AvaliacaoService, FrequenciaService | Bloqueio sem presença no HTTP e navegador | API e site |
 | 27 Duplicidade avaliação | M | Restrição UNIQUE de avaliacoes | API e navegador bloqueiam reenvio | API |
-| 28 Consolidação | M | AvaliacaoService.resumo / AvaliacaoHttpHandler | Script e teste HTTP, média/distribuição/comentário | API; tela desktop pendente |
+| 28 Consolidação | M | AvaliacaoService.resumo / AvaliacaoHttpHandler | Script e teste HTTP, média/distribuição/comentário | API e consulta simples pelo desktop; conferência visual pendente |
 | 29 Relatório inscritos | M | RelatorioService.inscritos | ApiIntegracaoTest; seed de 501 inscritos | API; tela completa pendente |
 | 30 Frequência/participação | M | RelatorioService.frequencia, histórico de frequência | Script CA-07 e teste HTTP | API; exportação desktop, consulta visual pendente |
 | 31 Exportação | M | RelatorioHttpHandler | Script salva CSV fora do sistema | API e desktop |
