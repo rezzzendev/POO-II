@@ -30,11 +30,7 @@ public class FrequenciaHttpHandler extends Endpoint {
         if (p.length == 2 && p[1].equals("qr") && m.equals("POST")) {
             long u = auth.exigir(e).getId();
             JSONObject b = HttpJson.lerCorpo(e);
-            String token =
-                    b.has("imagemBase64")
-                            ? qr.ler(Base64.getDecoder().decode(b.getString("imagemBase64")))
-                            : b.getString("token");
-            service.registrarQr(u, token);
+            service.registrarQr(u, b.getString("token"));
             HttpJson.responder(e, 201, new JSONObject().put("mensagem", "Frequência registrada."));
             return;
         }

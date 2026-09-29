@@ -75,14 +75,14 @@ Pasta principal: web/
 Arquivos iniciais: api.js e os fluxos de inscrição, agenda, presença e avaliação em app.js.
 
 O que já existe:
-Inscrição, seleção/troca de atividades, agenda, cancelamento, envio da imagem do QR Code e formulário dinâmico de avaliação com três tipos de resposta.
+Inscrição, seleção/troca de atividades, agenda, cancelamento, leitura de QR pela câmera e envio somente do token à API, além do formulário dinâmico de avaliação com três tipos de resposta.
 
 O que Matheus Lima deve fazer, nesta ordem:
 1. Rodar a base, entrar como participante e testar os fluxos já implementados.
 2. Melhorar a confirmação da inscrição e a exibição das atividades já escolhidas.
 3. Preservar/recuperar seleção ao filtrar a programação e tornar clara a troca de atividades.
 4. Melhorar a agenda e o cancelamento, apresentando prazo e mensagens de conflito/vagas devolvidas pela API.
-5. Exibir a situação da frequência e melhorar o envio da imagem do QR Code, com confirmação e tratamento de arquivo inválido.
+5. Exibir a situação da frequência e melhorar a leitura do QR pela câmera, com confirmação e mensagens claras quando o navegador não oferecer suporte ou a câmera não estiver disponível.
 6. Melhorar o questionário e informar claramente quando a avaliação foi enviada, quando falta presença e quando já existe resposta.
 7. Exibir a política de identificação das respostas antes do envio e respeitar os limites/tipos retornados pela API.
 8. Testar o fluxo completo do participante, inclusive tentativas inválidas, em conjunto com Carlos.

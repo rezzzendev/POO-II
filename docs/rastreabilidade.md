@@ -28,7 +28,7 @@ Legenda: **M** obrigatório, **D** desejável, **P** opcional. Fontes: especific
 | 18 Conflito agenda | M | InscricaoService.validar | ApiIntegracaoTest.vagasConflitoVinculoCancelamentoEAtomicidade | API; erro mostrado no cliente |
 | 19 Política frequência | M | PoliticaFrequencia e três implementações | FrequenciaTest | API e desktop |
 | 20 Gerar QR | M | CodigoFrequencia, QrCode, FrequenciaService | Fluxo HTTP e script geram PNG real | API e desktop |
-| 21 Ler QR | M | QrCode.ler, FrequenciaService | HTTP lê imagem; teste de navegador envia arquivo | API e site |
+| 21 Ler QR | M | BarcodeDetector no navegador, FrequenciaService.registrarQr | ApiIntegracaoTest valida token e rejeita pedido sem token; leitura física da câmera pendente | API e site |
 | 22 Lançamento manual | M | RegistroFrequencia, FrequenciaService.manual | Teste de correções com autoria/histórico | API e desktop |
 | 23 Calcular presença | M | Frequencia + Strategy | FrequenciaTest: check-in, entrada/saída, manual | API |
 | 24 Questionário | M | Questionario, AvaliacaoService, AvaliacaoRepositoryJdbc | QuestionarioTest, ApiIntegracaoTest | API e criação pelo desktop; conferência visual pendente |
@@ -80,6 +80,6 @@ Legenda: **M** obrigatório, **D** desejável, **P** opcional. Fontes: especific
 
 ## CA-01 a CA-07
 
-`scripts/demo-api.py` executa os sete fluxos pela API. `ApiIntegracaoTest` cobre autorização, persistência, regras e falhas. O teste de navegador cobre login, programação, avaliação inelegível, upload/leitura QR e avaliação válida.
+`scripts/demo-api.py` executa os sete fluxos pela API. `ApiIntegracaoTest` cobre autorização, persistência, regras e falhas. O teste de navegador cobre login, programação e avaliações; a leitura física do QR pela câmera ainda precisa de conferência manual. A rota recebe apenas o token lido pelo navegador.
 
 A demonstração final do grupo deve completar os fluxos usando as **telas**, especialmente os editores e consolidações pendentes no desktop. Compilar o Swing não equivale a validar manualmente todas as interações gráficas. CA-08 é desejável e não foi implementado.

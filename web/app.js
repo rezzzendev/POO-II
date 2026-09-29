@@ -4,6 +4,7 @@ const $ = id => document.getElementById(id);
 const mensagem = texto => { $('mensagem').textContent = texto; };
 const dados = form => Object.fromEntries(new FormData(form));
 let eventos = [], atividades = [], escolherAtividades = true;
+let camera, detector, cameraAtiva = false;
 // Conteúdo da API entra como texto, nunca como HTML executável.
 function elemento(tag, texto) { const e = document.createElement(tag); if (texto !== undefined) e.textContent = texto; return e; }
 function acao(id, evento, tarefa) {
@@ -60,11 +61,64 @@ acao('sair', 'click', async () => { api.sair(); $('usuario').textContent = 'Visi
 acao('eventos', 'change', programacao); acao('filtros', 'submit', programacao);
 acao('inscrever', 'click', async () => { const eventoId = Number($('eventos').value); if (!eventoId) throw new Error('Selecione um evento.'); await api.inscrever(eventoId, selecionadas()); mensagem('Inscrição confirmada.'); await agenda(); });
 acao('atualizar-agenda', 'click', agenda);
-acao('presenca', 'submit', async e => {
-  const arquivo = e.target.elements.imagem.files[0]; if (!arquivo || arquivo.size > 1000000) throw new Error('Selecione uma imagem de até 1 MB.');
-  const data = await new Promise((ok, falha) => { const leitor = new FileReader(); leitor.onload = () => ok(leitor.result.split(',')[1]); leitor.onerror = falha; leitor.readAsDataURL(arquivo); });
-  await api.enviar('/frequencia/qr', 'POST', {imagemBase64: data}); mensagem('Presença registrada.');
+function pararCamera() {
+  cameraAtiva = false;
+  if (camera) camera.getTracks().forEach(trilha => trilha.stop());
+  camera = null;
+  $('camera-qr').srcObject = null;
+  $('camera-qr').hidden = true;
+  $('abrir-camera').hidden = false;
+  $('fechar-camera').hidden = true;
+}
+async function lerQr() {
+  if (!cameraAtiva) return;
+  const video = $('camera-qr');
+  try {
+    if (video.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA) {
+      const codigos = await detector.detect(video);
+      if (!cameraAtiva) return;
+      if (codigos.length) {
+        const token = codigos[0].rawValue;
+        pararCamera();
+        await api.enviar('/frequencia/qr', 'POST', {token});
+        mensagem('Presença registrada.');
+        return;
+      }
+    }
+  } catch (erro) {
+    pararCamera();
+    mensagem(erro.message || 'Não foi possível ler o QR Code. Aproxime o código da câmera e tente novamente.');
+    return;
+  }
+  if (cameraAtiva) setTimeout(lerQr, 250);
+}
+$('abrir-camera').addEventListener('click', async () => {
+  try {
+    if (!('BarcodeDetector' in window) || !navigator.mediaDevices?.getUserMedia)
+      throw new Error('Este navegador não oferece leitura de QR pela câmera. Use Chrome ou Edge atualizado.');
+    detector = new BarcodeDetector({formats: ['qr_code']});
+    camera = await navigator.mediaDevices.getUserMedia({video: {facingMode: 'environment'}, audio: false});
+    $('camera-qr').srcObject = camera;
+    $('camera-qr').hidden = false;
+    $('abrir-camera').hidden = true;
+    $('fechar-camera').hidden = false;
+    await $('camera-qr').play();
+    cameraAtiva = true;
+    mensagem('Aponte a câmera para o QR Code da atividade.');
+    lerQr();
+  } catch (erro) {
+    pararCamera();
+    mensagem(
+      erro.name === 'NotAllowedError'
+        ? 'Permita o acesso à câmera para registrar a presença.'
+        : erro.name === 'NotFoundError'
+          ? 'Nenhuma câmera foi encontrada neste dispositivo.'
+          : erro.message || 'Não foi possível abrir a câmera.'
+    );
+  }
 });
+$('fechar-camera').addEventListener('click', pararCamera);
+window.addEventListener('pagehide', pararCamera);
 acao('atividade-avaliacao', 'change', async () => {
   const id = Number($('atividade-avaliacao').value); if (!id) return;
   $('questionarios').replaceChildren();

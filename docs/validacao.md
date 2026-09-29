@@ -67,3 +67,7 @@ Após a validação anterior, `mvn test` e `mvn package` foram executados novame
 ## Validação do cadastro — 28/09/2026
 
 O cadastro agora rejeita e-mail fora do formato esperado e senha com menos de 8 caracteres ou sem letras e números. A API retorna mensagens específicas; o desktop exibe a resposta e usa uma mensagem padrão se a API enviar corpo vazio ou inesperado. `mvn test` passou com **76 testes**, incluindo os novos casos de validação; `mvn -f desktop/pom.xml package` compilou o cliente Swing. O formulário web também informa o critério da senha. A conferência interativa dos formulários ainda depende de abrir as telas em ambiente gráfico.
+
+## Leitura de QR pela câmera no site — 28/09/2026
+
+O site lê o QR pela câmera usando `BarcodeDetector` nativo em navegadores compatíveis e envia somente o token à API; o envio de imagem foi removido do site e da rota. O Chrome headless carregou a página e o módulo JavaScript. A leitura com uma câmera física ainda precisa ser conferida manualmente.

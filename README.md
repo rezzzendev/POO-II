@@ -26,6 +26,8 @@ A carga é explícita, não ocorre ao iniciar a API. O autocadastro público sem
 
 No cadastro, informe nome, e-mail no formato `nome@dominio.com` e senha com pelo menos 8 caracteres, incluindo letras e números. E-mail duplicado ou dados inválidos são recusados pela API com uma mensagem exibida pelo desktop e pelo site.
 
+Para registrar frequência no site, entre com a conta do participante inscrito e use **Ler QR Code com a câmera**. O navegador pedirá permissão de câmera. Use um navegador compatível com o leitor nativo de QR; o site envia somente o token lido para a API. O organizador gera e exibe o código no desktop.
+
 ### Desktop
 
 Mantenha a API em execução e, em outro terminal:

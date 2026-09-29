@@ -15,7 +15,7 @@
 <p id="regras"></p><div id="atividades"></div><button id="inscrever">Confirmar inscrição e atividades selecionadas</button>
 </section>
 <section><h2>Minhas inscrições e agenda</h2><button id="atualizar-agenda">Atualizar</button><div id="inscricoes"></div><ul id="agenda"></ul></section>
-<section><h2>Registrar presença</h2><p>Selecione a imagem do QR Code disponibilizado pela organização.</p><form id="presenca"><label>Imagem do QR Code <input name="imagem" type="file" accept="image/png,image/jpeg" required></label><button>Registrar presença</button></form></section>
+<section><h2>Registrar presença</h2><p>Aponte a câmera para o QR Code da atividade. É necessário usar um navegador compatível e permitir o acesso à câmera.</p><button id="abrir-camera" type="button">Ler QR Code com a câmera</button> <button id="fechar-camera" type="button" hidden>Fechar câmera</button><video id="camera-qr" playsinline muted hidden></video></section>
 <section><h2>Avaliar uma atividade</h2><label>Atividade <select id="atividade-avaliacao"><option value="">Selecione uma atividade na programação</option></select></label><div id="questionarios"></div></section>
 </main><footer>JAVA8 · POO II · Base para continuação da equipe</footer><script type="module" src="app.js"></script>
 </body></html>

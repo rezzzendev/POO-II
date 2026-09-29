@@ -145,7 +145,7 @@ A API já oferece o núcleo de usuários, eventos, atividades, inscrição, agen
 
 O desktop já oferece uma base com eventos, atividades, publicação, frequência, QR e CSV. Habny deve completar principalmente edição, pessoas vinculadas, regras de inscrição, questionários e resultados.
 
-O web já oferece programação, cadastro/login, inscrição, agenda, envio da imagem QR e avaliação. Carlos deve completar perfil e melhorar a parte pública/visual. Matheus Lima deve melhorar os fluxos do participante e apresentar claramente o estado da inscrição, presença e avaliação.
+O web já oferece programação, cadastro/login, inscrição, agenda e avaliação. Para presença, lê o QR com a câmera do navegador e envia somente o token à API; não há envio de arquivo de imagem. Carlos deve completar perfil e melhorar a parte pública/visual. Matheus Lima deve melhorar os fluxos do participante e apresentar claramente o estado da inscrição, presença e avaliação.
 
 O arquivo Divisao tem a ordem de trabalho e o resultado esperado para cada pessoa. Não é necessário refazer a base inteira.
 

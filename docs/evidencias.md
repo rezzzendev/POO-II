@@ -26,7 +26,7 @@ Para S1–S8 o campo é “Observação do grupo”. Para 9–16 é “Link”, 
 
 ## 6 — S6: frequência configurável
 
-> Demonstração: [data/formato real]. Versão: [commit]. Foram implementadas políticas de check-in único, entrada/saída e validação manual, geração e leitura real de QR por imagem e correções manuais com autoria. Caminho válido: inscrito envia o PNG do QR e obtém presença; organizador pode corrigir com justificativa preservando o histórico. Erros: QR expirado, duplicidade, saída sem entrada e ação manual sem autorização. Testes: FrequenciaTest e ApiIntegracaoTest. Decisão: Strategy por composição em Frequencia. Pendências/próxima meta: [registro real].
+> Demonstração: [data/formato real]. Versão: [commit]. Foram implementadas políticas de check-in único, entrada/saída e validação manual, geração de QR e correções manuais com autoria. Caminho válido: organizador gera o QR; o participante lê com a câmera do navegador, que envia somente o token à API; a presença é registrada. Erros: QR expirado, duplicidade, saída sem entrada e ação manual sem autorização. Testes: FrequenciaTest e ApiIntegracaoTest. Decisão: Strategy por composição em Frequencia. A leitura física da câmera deve ser demonstrada no navegador compatível. Pendências/próxima meta: [registro real].
 
 ## 7 — S7: avaliações, relatórios e refatoração
 

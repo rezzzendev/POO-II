@@ -51,10 +51,10 @@ q = chamar('POST', '/questionarios', {'atividadeId': aid, 'titulo': 'Avaliação
 respostas = {'respostas': {str(p['id']): v for p, v in zip(q['perguntas'], ['Bom conteúdo', 'Sim', 5])}}
 chamar('POST', f"/questionarios/{q['id']}/respostas", respostas, token, 400)
 qr = chamar('POST', f'/frequencia/{aid}/codigos', {'tipo': 'CHECK_IN'}, org, 201)
-chamar('POST', '/frequencia/qr', {'imagemBase64': qr['imagemBase64']}, token, 201)
+chamar('POST', '/frequencia/qr', {'token': qr['token']}, token, 201)
 chamar('POST', '/frequencia/qr', {'token': qr['token']}, token, 400)
 assert chamar('GET', f'/frequencia/{aid}', token=token)['presente']
-print('CA-04: imagem QR lida, presença validada e repetição rejeitada')
+print('CA-04: token do QR validado, presença registrada e repetição rejeitada')
 for presente in (False, True):
     chamar('POST', f'/frequencia/{aid}/manual', {'usuarioId': usuario['id'], 'presente': presente, 'justificativa': 'Conferência do roteiro'}, org, 201)
 historico = chamar('GET', f'/frequencia/{aid}', token=token)

@@ -210,6 +210,11 @@ class ApiIntegracaoTest {
                 "/frequencia/qr",
                 participante,
                 new JSONObject().put("imagemBase64", codigo.getString("imagemBase64")),
+                400);
+        post(
+                "/frequencia/qr",
+                participante,
+                new JSONObject().put("token", codigo.getString("token")),
                 201);
         post(
                 "/frequencia/qr",

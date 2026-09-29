@@ -78,14 +78,14 @@ Padrão: escolha habilitada, vagas habilitadas, prazo no início do evento. Com 
 | GET `/frequencia/{atividadeId}/politica` | `{politica}` | Autenticado |
 | PUT `/frequencia/{atividadeId}/politica` | `{politica:"CHECK_IN"}`; também ENTRADA_SAIDA ou MANUAL | Organização, antes do primeiro registro |
 | POST `/frequencia/{atividadeId}/codigos` | `{tipo:"CHECK_IN"}`; ou ENTRADA / SAIDA conforme política | Organização |
-| POST `/frequencia/qr` | `{token:"..."}` **ou** `{imagemBase64:"..."}` | Participante autenticado e inscrito |
+| POST `/frequencia/qr` | `{token:"..."}` | Participante autenticado e inscrito |
 | POST `/frequencia/{atividadeId}/manual` | `{usuarioId:3,presente:true,justificativa:"Lista conferida"}` | Organização |
 | GET `/frequencia/{atividadeId}` | Situação e histórico do usuário autenticado | Próprio usuário |
 | GET `/frequencia/{atividadeId}?usuarioId=3` | Situação e histórico do participante indicado | Organização ou próprio usuário |
 
-Gerar código retorna `{token,validade,imagemBase64}`. Imagem é PNG de 300×300; validade em UTC. O cliente exibe `data:image/png;base64,` seguido da imagem ou salva um PNG. O envio da imagem deve conter **apenas o conteúdo Base64**, sem o prefixo data URL. O site já lê o arquivo dessa forma.
+Gerar código retorna `{token,validade,imagemBase64}`. Imagem é PNG de 300×300; validade em UTC. O desktop mostra ou salva o PNG. O site lê o QR pela câmera e envia somente o token à API; a imagem não é enviada.
 
-QR contém somente token opaco. Válido por cinco minutos; não revela senha ou dados pessoais. Repetir a mesma marcação do participante é rejeitado. Saída exige entrada anterior. Não é obrigatório usar câmera: leitura de uma imagem real do QR cumpre a operação. Não há imposição de janela do horário da atividade além da validade do código emitido pelo organizador; essa simplificação permite demonstração controlada.
+QR contém somente token opaco. Válido por cinco minutos; não revela senha ou dados pessoais. O mesmo código pode ser usado pelos participantes da atividade durante esse prazo, mas repetir uma marcação para a mesma pessoa é rejeitado. Saída exige entrada anterior. O site lê pela câmera em navegadores compatíveis e envia somente o token. Não há imposição de janela do horário da atividade além da validade do código emitido pelo organizador; essa simplificação permite demonstração controlada.
 
 Histórico retorna `{id,tipo,origem,responsavelId,instante,justificativa}`. A última correção manual determina a situação, sem remover registros anteriores. `presente:false` registra invalidação manual, não exclusão. Frequência manual e QR exigem inscrição válida.
 
