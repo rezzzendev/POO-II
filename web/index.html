@@ -7,7 +7,7 @@
 <p id="mensagem" role="status" aria-live="polite"></p>
 <section><h2>Sua conta</h2><p>Seus dados são usados para inscrição, frequência e contato da organização.</p>
 <form id="login"><label>E-mail <input name="email" type="email" required autocomplete="username"></label><label>Senha <input name="senha" type="password" required autocomplete="current-password"></label><button>Entrar</button><button id="sair" type="button">Sair</button></form>
-<details><summary>Criar conta</summary><form id="cadastro"><label>Nome <input name="nome" required></label><label>E-mail <input name="email" type="email" required></label><label>Senha <input name="senha" type="password" required autocomplete="new-password"></label><button>Cadastrar</button></form></details>
+<details><summary>Criar conta</summary><form id="cadastro"><label>Nome <input name="nome" required></label><label>E-mail <input name="email" type="email" required autocomplete="email"></label><label>Senha <input name="senha" type="password" required minlength="8" pattern="(?=.*[A-Za-z])(?=.*[0-9]).{8,}" title="Use pelo menos 8 caracteres, com letras e números." autocomplete="new-password"></label><small>A senha deve ter pelo menos 8 caracteres, com letras e números. A API informa se algum dado for inválido.</small><button>Cadastrar</button></form></details>
 <p id="usuario">Visitante</p>
 </section>
 <section><h2>Eventos e programação</h2><label>Evento <select id="eventos"><option value="">Selecione</option></select></label><p id="evento-descricao"></p>

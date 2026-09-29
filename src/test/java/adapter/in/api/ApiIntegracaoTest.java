@@ -28,7 +28,9 @@ class ApiIntegracaoTest {
     void iniciar() throws Exception {
         System.setProperty("db.url", "jdbc:h2:mem:api_" + UUID.randomUUID() + ";DB_CLOSE_DELAY=-1");
         new UsuarioRepositoryJdbc()
-                .salvar(Usuario.novo("Admin", "admin@test.local", "senha", Papel.ADMINISTRADOR));
+                .salvar(
+                        Usuario.novo(
+                                "Admin", "admin@test.local", "Senha123", Papel.ADMINISTRADOR));
         servidor = ServidorApi.criar(0, Clock.fixed(agora, ZoneOffset.UTC));
         servidor.start();
         base = "http://127.0.0.1:" + servidor.getAddress().getPort();
@@ -38,7 +40,7 @@ class ApiIntegracaoTest {
                                 null,
                                 new JSONObject()
                                         .put("email", "admin@test.local")
-                                        .put("senha", "senha"),
+                                        .put("senha", "Senha123"),
                                 200))
                         .getString("token");
         usuarioId =
@@ -48,7 +50,7 @@ class ApiIntegracaoTest {
                                 new JSONObject()
                                         .put("nome", "Pessoa")
                                         .put("email", "p@test.local")
-                                        .put("senha", "senha")
+                                        .put("senha", "Senha123")
                                         .put("papel", "ADMINISTRADOR"),
                                 201))
                         .getLong("id");
@@ -56,7 +58,9 @@ class ApiIntegracaoTest {
                 json(post(
                                 "/login",
                                 null,
-                                new JSONObject().put("email", "p@test.local").put("senha", "senha"),
+                                new JSONObject()
+                                        .put("email", "p@test.local")
+                                        .put("senha", "Senha123"),
                                 200))
                         .getString("token");
     }
@@ -271,7 +275,7 @@ class ApiIntegracaoTest {
                                 null,
                                 new JSONObject()
                                         .put("email", "admin@test.local")
-                                        .put("senha", "senha"),
+                                        .put("senha", "Senha123"),
                                 200))
                         .getString("token");
         assertEquals(
@@ -373,7 +377,7 @@ class ApiIntegracaoTest {
                 new JSONObject()
                         .put("nome", "Outro")
                         .put("email", " P@TEST.LOCAL ")
-                        .put("senha", "senha"),
+                        .put("senha", "Senha123"),
                 400);
         assertEquals(
                 "PARTICIPANTE",
@@ -484,7 +488,9 @@ class ApiIntegracaoTest {
                 json(post(
                                 "/login",
                                 null,
-                                new JSONObject().put("email", "p@test.local").put("senha", "senha"),
+                                new JSONObject()
+                                        .put("email", "p@test.local")
+                                        .put("senha", "Senha123"),
                                 200))
                         .getString("token");
         var resposta =
@@ -499,5 +505,43 @@ class ApiIntegracaoTest {
                 json(req("GET", "/frequencia/" + a, participante, null))
                         .getJSONArray("registros")
                         .length());
+    }
+
+    @Test
+    void cadastroRetornaMensagensClarasParaEmailESenhaInvalidos() throws Exception {
+        var emailInvalido =
+                post(
+                        "/usuarios",
+                        null,
+                        new JSONObject()
+                                .put("nome", "Pessoa")
+                                .put("email", "pessoa@dominio")
+                                .put("senha", "Senha123"),
+                        400);
+        assertEquals("E-mail inválido.", json(emailInvalido).getString("erro"));
+
+        var senhaCurta =
+                post(
+                        "/usuarios",
+                        null,
+                        new JSONObject()
+                                .put("nome", "Pessoa")
+                                .put("email", "pessoa1@test.local")
+                                .put("senha", "Abc123!"),
+                        400);
+        assertEquals(
+                "A senha deve ter pelo menos 8 caracteres.", json(senhaCurta).getString("erro"));
+
+        var senhaSemNumero =
+                post(
+                        "/usuarios",
+                        null,
+                        new JSONObject()
+                                .put("nome", "Pessoa")
+                                .put("email", "pessoa2@test.local")
+                                .put("senha", "somenteletras"),
+                        400);
+        assertEquals(
+                "A senha deve conter letras e números.", json(senhaSemNumero).getString("erro"));
     }
 }

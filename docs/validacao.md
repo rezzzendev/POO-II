@@ -63,3 +63,7 @@ O repositório já tinha mudanças locais e arquivos `target/` rastreados antes 
 ## Revalidação da API — 27/09/2026
 
 Após a validação anterior, `mvn test` e `mvn package` foram executados novamente: **72 testes passaram, sem falhas ou erros**. O roteiro `python3 scripts/demo-api.py --base http://localhost:18080` também foi executado contra uma base H2 temporária em `/tmp`; CA-01 a CA-07 passaram, incluindo inscrição duplicada, agenda, QR, correção manual, avaliação, relatório e CSV. Essa execução confirma os fluxos da API; não substitui a demonstração das interfaces do grupo.
+
+## Validação do cadastro — 28/09/2026
+
+O cadastro agora rejeita e-mail fora do formato esperado e senha com menos de 8 caracteres ou sem letras e números. A API retorna mensagens específicas; o desktop exibe a resposta e usa uma mensagem padrão se a API enviar corpo vazio ou inesperado. `mvn test` passou com **76 testes**, incluindo os novos casos de validação; `mvn -f desktop/pom.xml package` compilou o cliente Swing. O formulário web também informa o critério da senha. A conferência interativa dos formulários ainda depende de abrir as telas em ambiente gráfico.

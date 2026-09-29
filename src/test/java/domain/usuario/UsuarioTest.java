@@ -1,5 +1,6 @@
 package domain.usuario;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -50,10 +51,58 @@ class UsuarioTest {
     }
 
     @Test
+    void emailPrecisaTerDominioCompleto() {
+        var erro =
+                assertThrows(
+                        UsuarioInvalidoException.class,
+                        () ->
+                                Usuario.novo(
+                                        "Matheus",
+                                        "matheus@dominio",
+                                        "senha123",
+                                        Papel.PARTICIPANTE));
+        assertEquals("E-mail inválido.", erro.getMessage());
+    }
+
+    @Test
     void senhaEObrigatoria() {
         assertThrows(
                 UsuarioInvalidoException.class,
                 () -> Usuario.novo("Matheus", "matheus@exemplo.com", "", Papel.PARTICIPANTE));
+    }
+
+    @Test
+    void senhaPrecisaTerOitoCaracteres() {
+        var erro =
+                assertThrows(
+                        UsuarioInvalidoException.class,
+                        () ->
+                                Usuario.novo(
+                                        "Matheus",
+                                        "matheus@exemplo.com",
+                                        "Abc123!",
+                                        Papel.PARTICIPANTE));
+        assertEquals("A senha deve ter pelo menos 8 caracteres.", erro.getMessage());
+    }
+
+    @Test
+    void senhaPrecisaTerLetraENumero() {
+        assertThrows(
+                UsuarioInvalidoException.class,
+                () ->
+                        Usuario.novo(
+                                "Matheus",
+                                "matheus@exemplo.com",
+                                "somenteletras",
+                                Papel.PARTICIPANTE));
+        assertThrows(
+                UsuarioInvalidoException.class,
+                () ->
+                        Usuario.novo(
+                                "Matheus",
+                                "matheus@exemplo.com",
+                                "12345678",
+                                Papel.PARTICIPANTE));
     }
 
     @Test

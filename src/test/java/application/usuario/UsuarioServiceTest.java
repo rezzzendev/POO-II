@@ -37,15 +37,15 @@ class UsuarioServiceTest {
     @Test
     void cadastroLoginEPerfilSemInterface() {
         var service = new UsuarioService(memoria);
-        var u = service.cadastrar("Ana", " ANA@TEST.LOCAL ", "senha");
+        var u = service.cadastrar("Ana", " ANA@TEST.LOCAL ", "Senha1234");
         assertEquals(Papel.PARTICIPANTE, u.getPapel());
         assertEquals("ana@test.local", u.getEmail());
-        assertNotEquals("senha", u.getSenhaHash());
-        assertNotNull(service.autenticar("ana@test.local", "senha"));
+        assertNotEquals("Senha1234", u.getSenhaHash());
+        assertNotNull(service.autenticar("ana@test.local", "Senha1234"));
         assertNull(service.autenticar("ana@test.local", "errada"));
         assertThrows(
                 UsuarioInvalidoException.class,
-                () -> service.cadastrar("Outra", "ana@test.local", "senha"));
+                () -> service.cadastrar("Outra", "ana@test.local", "Senha1234"));
         service.editar(u, "Ana Silva", "ana@test.local");
         assertEquals("Ana Silva", memoria.buscarPorId(u.getId()).orElseThrow().getNome());
     }

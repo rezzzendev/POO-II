@@ -176,12 +176,22 @@ public class EventoApiClient {
                         requisicao.timeout(java.time.Duration.ofSeconds(15)).build(),
                         HttpResponse.BodyHandlers.ofString());
         if (resposta.statusCode() >= 400) {
-            String mensagem =
-                    resposta.body().isBlank()
-                            ? "A API respondeu " + resposta.statusCode()
-                            : new JSONObject(resposta.body()).optString("erro", "Erro na API.");
-            throw new IOException(mensagem);
+            throw new IOException(mensagemErro(resposta));
         }
         return resposta;
+    }
+
+    private String mensagemErro(HttpResponse<String> resposta) {
+        String corpo = resposta.body();
+        if (corpo != null && !corpo.isBlank()) {
+            try {
+                Object erro = new JSONObject(corpo).opt("erro");
+                if (erro instanceof String texto && !texto.isBlank() && !texto.equals("null"))
+                    return texto;
+            } catch (RuntimeException ignorado) {
+                // A resposta pode não ser JSON; abaixo mostramos o status sem exibir HTML bruto.
+            }
+        }
+        return "A API não aceitou a solicitação (HTTP " + resposta.statusCode() + ").";
     }
 }

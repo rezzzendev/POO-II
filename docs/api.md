@@ -1,4 +1,4 @@
-# Contrato da API — versão de 24/09/2026
+# Contrato da API — versão de 28/09/2026
 
 Base local: `http://localhost:8080`. Requisições com corpo usam `Content-Type: application/json`. Após login, envie `Authorization: Bearer TOKEN`. `GET /eventos` e `/atividades` exibem somente publicados para público/participantes; com token de organização também exibem rascunhos e encerrados.
 
@@ -14,7 +14,7 @@ Respostas: 200 para consultas/alterações, 201 para criações, 204 para remoç
 | PUT `/usuarios/me` | `{nome,email}` → perfil persistido | Próprio usuário |
 | PUT `/usuarios/{id}/papel` | `{papel:"ORGANIZADOR"}`; também PARTICIPANTE ou ADMINISTRADOR | Administrador, outro usuário |
 
-Senhas usam PBKDF2 com sal; nunca são devolvidas. E-mail é normalizado e duplicidade é rejeitada. Sessões ficam na memória do processo; reinício exige login novamente.
+No cadastro, o e-mail deve ter formato `nome@dominio.extensão`; espaços externos são removidos e o endereço é normalizado para minúsculas. E-mail duplicado é rejeitado. A senha deve ter pelo menos 8 caracteres e conter letras e números. Erros de validação retornam HTTP 400 com a mensagem em `erro`. Senhas usam PBKDF2 com sal e nunca são devolvidas. Sessões ficam na memória do processo; reinício exige login novamente.
 
 ## Eventos e atividades
 

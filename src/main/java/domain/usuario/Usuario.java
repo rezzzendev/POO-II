@@ -17,16 +17,14 @@ public class Usuario {
         validar(nome, email, senhaHash, papel);
 
         this.id = id;
-        this.nome = nome;
+        this.nome = nome.strip();
         this.email = email.strip().toLowerCase(java.util.Locale.ROOT);
         this.senhaHash = senhaHash;
         this.papel = papel;
     }
 
     public static Usuario novo(String nome, String email, String senha, Papel papel) {
-        if (senha == null || senha.isBlank()) {
-            throw new UsuarioInvalidoException("Senha é obrigatória.");
-        }
+        validarSenha(senha);
         return new Usuario(null, nome, email, SenhaHasher.hash(senha), papel);
     }
 
@@ -35,8 +33,11 @@ public class Usuario {
             throw new UsuarioInvalidoException("Nome é obrigatório.");
         }
         if (email == null
-                || email.length() > 255
-                || !email.strip().matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+")) {
+                || email.strip().length() > 255
+                || !email
+                        .strip()
+                        .matches(
+                                "[^\\s@.]+(?:\\.[^\\s@.]+)*@[^\\s@.]+(?:\\.[^\\s@.]+)+")) {
             throw new UsuarioInvalidoException("E-mail inválido.");
         }
         if (senhaHash == null || senhaHash.isBlank()) {
@@ -44,6 +45,20 @@ public class Usuario {
         }
         if (papel == null) {
             throw new UsuarioInvalidoException("Papel do usuário é obrigatório.");
+        }
+    }
+
+    private static void validarSenha(String senha) {
+        if (senha == null || senha.isBlank()) {
+            throw new UsuarioInvalidoException("Senha é obrigatória.");
+        }
+        if (senha.length() < 8) {
+            throw new UsuarioInvalidoException("A senha deve ter pelo menos 8 caracteres.");
+        }
+        boolean temLetra = senha.chars().anyMatch(Character::isLetter);
+        boolean temNumero = senha.chars().anyMatch(Character::isDigit);
+        if (!temLetra || !temNumero) {
+            throw new UsuarioInvalidoException("A senha deve conter letras e números.");
         }
     }
 

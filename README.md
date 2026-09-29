@@ -24,6 +24,8 @@ O comando `--demo` cria uma base fictícia com **503 usuários (501 participante
 
 A carga é explícita, não ocorre ao iniciar a API. O autocadastro público sempre cria participante. O administrador pode alterar o papel de outros usuários pela API.
 
+No cadastro, informe nome, e-mail no formato `nome@dominio.com` e senha com pelo menos 8 caracteres, incluindo letras e números. E-mail duplicado ou dados inválidos são recusados pela API com uma mensagem exibida pelo desktop e pelo site.
+
 ### Desktop
 
 Mantenha a API em execução e, em outro terminal:

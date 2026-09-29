@@ -60,7 +60,8 @@ public class LoginScreen extends JFrame {
                         dispose();
                         SwingUtilities.invokeLater(() -> new DesktopApp(api).setVisible(true));
                     } catch (Exception ex) {
-                        mensagem.setText(ex.getMessage());
+                        mensagem.setText(
+                                mensagem(ex, "Não foi possível entrar. Tente novamente."));
                     }
                 });
 
@@ -81,10 +82,11 @@ public class LoginScreen extends JFrame {
         JPanel painel = new JPanel(new GridLayout(0, 1, 4, 4));
         painel.add(new JLabel("Nome"));
         painel.add(nome);
-        painel.add(new JLabel("E-mail"));
+        painel.add(new JLabel("E-mail (exemplo: nome@dominio.com)"));
         painel.add(email);
         painel.add(new JLabel("Senha"));
         painel.add(senha);
+        painel.add(new JLabel("Use pelo menos 8 caracteres, com letras e números."));
 
         int escolha =
                 JOptionPane.showConfirmDialog(
@@ -99,10 +101,17 @@ public class LoginScreen extends JFrame {
         } catch (Exception e) {
             JOptionPane.showMessageDialog(
                     pai,
-                    "Não deu pra cadastrar: " + e.getMessage(),
+                    mensagem(
+                            e,
+                            "Não foi possível cadastrar. Confira os dados e tente novamente."),
                     "Erro",
                     JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private String mensagem(Exception erro, String padrao) {
+        String texto = erro.getMessage();
+        return texto == null || texto.isBlank() ? padrao : texto;
     }
 
     public static void main(String[] args) {
