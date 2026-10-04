@@ -1,4 +1,4 @@
-# Matriz de rastreabilidade — 24/09/2026
+# Matriz de rastreabilidade — 04/10/2026
 
 **Escopo desta entrega:** backend e bases dos clientes. “Disponível na API” não significa que todas as telas finais foram concluídas ou que a demonstração já foi realizada diante do professor. Ver [equipe](equipe.md) e [validação](validacao.md).
 
@@ -11,16 +11,16 @@ Legenda: **M** obrigatório, **D** desejável, **P** opcional. Fontes: especific
 | 01 Cadastro | M | Usuario, UsuarioService, UsuarioRepositoryJdbc | UsuarioServiceTest, UsuarioTest, ApiIntegracaoTest | API e site; cadastro desktop existente |
 | 02 Login/permissões | M | UsuarioService, Autenticador, SessaoStore, UsuarioHttpHandler | ApiIntegracaoTest.autorizacaoRascunhoEMalformedJson | API e clientes; gerenciamento de papéis por API |
 | 03 Perfil | M | Usuario.editarPerfil, UsuarioService | UsuarioServiceTest | API; tela a cargo de Carlos |
-| 04 Eventos | M | Evento, EventoHttpHandler, EventoRepositoryJdbc | EventoTest, EventoRepositoryJdbcTest, roteiro CA-01 | API; desktop base, edição completa pendente |
+| 04 Eventos | M | Evento, EventoHttpHandler, EventoRepositoryJdbc | EventoTest, EventoRepositoryJdbcTest, roteiro CA-01 | API; desktop cria/edita rascunho com local e fuso; validação visual manual pendente |
 | 05 Tipos abertos | M | Atividade, ProgramacaoService | AtividadeTest; criação no roteiro | API e base desktop |
 | 06 Trilhas/espaços | M | AtividadeRepository.buscar | AtividadeRepositoryJdbcTest; filtros no site | API e site |
 | 07 Conflito programação | M | Atividade.conflitaCom, ProgramacaoService | AtividadeTest; erro de conflito antes de publicar | API; validar tela final |
-| 08 Pessoas vinculadas | M | VinculoPessoa, AtividadeRepositoryJdbc | AtividadeRepositoryJdbcTest; seed com palestrante | API e exibição web; editor desktop pendente |
+| 08 Pessoas vinculadas | M | VinculoPessoa, AtividadeRepositoryJdbc | AtividadeRepositoryJdbcTest; seed com palestrante | API, exibição web e vínculo pelo desktop usando ID de conta; validação visual manual pendente |
 | 09 Filtros combináveis | M | AtividadeRepository.buscar, AtividadeHttpHandler | AtividadeRepositoryJdbcTest; data/trilha/tipo/local no site | API e site |
 | 10 Página pública | M | SiteHttpHandler, web | ApiIntegracaoTest e navegador | Base funcional |
 | 11 Programação/pessoas | M | web/app.js, /atividades e /pessoas | Seed e navegador; foto não exigida | Base funcional |
 | 12 Inscrição pelo site | M | web/Api.inscrever, InscricaoService | ApiIntegracaoTest; roteiro + revisão da interface | Base funcional |
-| 13 Configurar inscrição | M | RegrasInscricao, InscricaoService.configurar | ApiIntegracaoTest.inscricaoSomenteEventoEFrequenciaManual | API; editor desktop pendente |
+| 13 Configurar inscrição | M | RegrasInscricao, InscricaoService.configurar | ApiIntegracaoTest.inscricaoSomenteEventoEFrequenciaManual | API e editor desktop; API bloqueia alteração após a primeira inscrição |
 | 14 Vagas | M | Atividade.temVagaDisponivel, InscricaoService | Teste HTTP da última vaga concorrente | API |
 | 15 Cancelamento | M | RegrasInscricao, Inscricao.cancelar | ApiIntegracaoTest.cancelamentoNoPrazoLiberaVaga | API e site |
 | 16 Seleção | M | InscricaoService.selecionar | InscricaoTest, ApiIntegracaoTest | API e site |
@@ -35,10 +35,10 @@ Legenda: **M** obrigatório, **D** desejável, **P** opcional. Fontes: especific
 | 25 Tipos de resposta | M | Pergunta, Texto, EscolhaUnica, Escala | QuestionarioTest; persistência HTTP dos três tipos | API e formulário web |
 | 26 Elegibilidade | M | AvaliacaoService, FrequenciaService | Bloqueio sem presença no HTTP e navegador | API e site |
 | 27 Duplicidade avaliação | M | Restrição UNIQUE de avaliacoes | API e navegador bloqueiam reenvio | API |
-| 28 Consolidação | M | AvaliacaoService.resumo / AvaliacaoHttpHandler | Script e teste HTTP, média/distribuição/comentário | API e consulta simples pelo desktop; conferência visual pendente |
-| 29 Relatório inscritos | M | RelatorioService.inscritos | ApiIntegracaoTest; seed de 501 inscritos | API; tela completa pendente |
-| 30 Frequência/participação | M | RelatorioService.frequencia, histórico de frequência | Script CA-07 e teste HTTP | API; exportação desktop, consulta visual pendente |
-| 31 Exportação | M | RelatorioHttpHandler | Script salva CSV fora do sistema | API e desktop |
+| 28 Consolidação | M | AvaliacaoService.resumo / AvaliacaoHttpHandler | Script e teste HTTP, média/distribuição/comentário | API e consulta pelo desktop; conferência visual manual pendente |
+| 29 Relatório inscritos | M | RelatorioService.inscritos | ApiIntegracaoTest; seed de 501 inscritos | API e consulta/exportação CSV pelo desktop; conferência visual manual pendente |
+| 30 Frequência/participação | M | RelatorioService.frequencia, histórico de frequência | Script CA-07 e teste HTTP | API e consulta/exportação CSV pelo desktop; conferência visual manual pendente |
+| 31 Exportação | M | RelatorioHttpHandler | Script salva CSV fora do sistema | API e exportação de inscritos/frequência pelo desktop; conferência visual manual pendente |
 | 32 Elegibilidade certificado | D | Fora do recorte desta entrega | Não testado | Não implementado |
 | 33 Certificado PDF | D | Fora do recorte desta entrega | Não testado | Não implementado |
 | 34 Envio por e-mail | D | Fora do recorte desta entrega | Não testado | Não implementado |
@@ -82,4 +82,4 @@ Legenda: **M** obrigatório, **D** desejável, **P** opcional. Fontes: especific
 
 `scripts/demo-api.py` executa os sete fluxos pela API. `ApiIntegracaoTest` cobre autorização, persistência, regras e falhas. O teste de navegador cobre login, programação e avaliações; a leitura física do QR pela câmera ainda precisa de conferência manual. A rota recebe apenas o token lido pelo navegador.
 
-A demonstração final do grupo deve completar os fluxos usando as **telas**, especialmente os editores e consolidações pendentes no desktop. Compilar o Swing não equivale a validar manualmente todas as interações gráficas. CA-08 é desejável e não foi implementado.
+A demonstração final do grupo deve completar os fluxos usando as **telas**. As operações administrativas de evento/atividade, regras de inscrição e relatórios agora têm controles Swing; ainda é necessária a conferência visual e a execução integrada pela equipe. Compilar o Swing não equivale a validar manualmente todas as interações gráficas. CA-08 é desejável e não foi implementado.

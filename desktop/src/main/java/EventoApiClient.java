@@ -62,24 +62,14 @@ public class EventoApiClient {
         return eventos;
     }
 
-    public JSONObject criar(
-            String titulo, String descricao, String inicio, String fim, String modalidade)
+    public JSONObject criarEvento(JSONObject corpo) throws IOException, InterruptedException {
+        return new JSONObject(
+                requisicao("POST", "/eventos", corpo));
+    }
+
+    public JSONObject editarEvento(long id, JSONObject corpo)
             throws IOException, InterruptedException {
-        JSONObject corpo =
-                new JSONObject()
-                        .put("titulo", titulo)
-                        .put("descricao", descricao)
-                        .put("inicio", inicio)
-                        .put("fim", fim)
-                        .put("modalidade", modalidade);
-
-        HttpResponse<String> resposta =
-                enviarAutenticado(
-                        HttpRequest.newBuilder(URI.create(EVENTOS_URL))
-                                .header("Content-Type", "application/json")
-                                .POST(HttpRequest.BodyPublishers.ofString(corpo.toString())));
-
-        return new JSONObject(resposta.body());
+        return new JSONObject(requisicao("PUT", "/eventos/" + id, corpo));
     }
 
     public void remover(long id) throws IOException, InterruptedException {
@@ -106,6 +96,37 @@ public class EventoApiClient {
 
     public JSONObject criarAtividade(JSONObject corpo) throws IOException, InterruptedException {
         return new JSONObject(requisicao("POST", "/atividades", corpo));
+    }
+
+    public JSONObject editarAtividade(long id, JSONObject corpo)
+            throws IOException, InterruptedException {
+        return new JSONObject(requisicao("PUT", "/atividades/" + id, corpo));
+    }
+
+    public void removerAtividade(long id) throws IOException, InterruptedException {
+        requisicao("DELETE", "/atividades/" + id, null);
+    }
+
+    public JSONArray pessoas(long atividadeId) throws IOException, InterruptedException {
+        return new JSONArray(requisicao("GET", "/atividades/" + atividadeId + "/pessoas", null));
+    }
+
+    public JSONObject vincularPessoa(long atividadeId, long usuarioId, String papel)
+            throws IOException, InterruptedException {
+        return new JSONObject(
+                requisicao(
+                        "POST",
+                        "/atividades/" + atividadeId + "/pessoas",
+                        new JSONObject().put("usuarioId", usuarioId).put("papel", papel)));
+    }
+
+    public JSONObject regrasInscricao(long eventoId) throws IOException, InterruptedException {
+        return new JSONObject(requisicao("GET", "/regras-inscricao/" + eventoId, null));
+    }
+
+    public JSONObject configurarRegrasInscricao(long eventoId, JSONObject corpo)
+            throws IOException, InterruptedException {
+        return new JSONObject(requisicao("PUT", "/regras-inscricao/" + eventoId, corpo));
     }
 
     public void publicar(long eventoId) throws IOException, InterruptedException {

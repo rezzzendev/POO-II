@@ -71,3 +71,9 @@ O cadastro agora rejeita e-mail fora do formato esperado e senha com menos de 8 
 ## Leitura de QR pela câmera no site — 28/09/2026
 
 O site lê o QR pela câmera usando `BarcodeDetector` nativo em navegadores compatíveis e envia somente o token à API; o envio de imagem foi removido do site e da rota. O Chrome headless carregou a página e o módulo JavaScript. A leitura com uma câmera física ainda precisa ser conferida manualmente.
+
+## Administração Swing — 04/10/2026
+
+O desktop passou a oferecer criação e edição de evento em rascunho com local/fuso, edição e remoção de atividade, vínculo de pessoa pelo ID de conta, edição das regras de inscrição e consulta/exportação CSV dos relatórios de inscritos e frequência. A configuração continua sendo validada pela API; por exemplo, a API recusa edição de evento publicado e alteração das regras após a primeira inscrição.
+
+`mvn -f desktop/pom.xml clean package` compilou o cliente, e `mvn test` passou com **75 testes**, sem falhas. `git diff --check` também passou. A janela Swing não foi inspecionada interativamente nesta validação; a equipe ainda precisa conferir os diálogos em ambiente gráfico e executar os fluxos completos CA-01 a CA-07 pelas telas.

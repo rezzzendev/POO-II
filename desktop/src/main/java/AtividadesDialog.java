@@ -29,6 +29,9 @@ public class AtividadesDialog extends JDialog {
         JPanel botoes = new JPanel();
         botao(botoes, "Atualizar", this::carregar);
         botao(botoes, "Nova atividade", this::nova);
+        botao(botoes, "Editar atividade", this::editar);
+        botao(botoes, "Remover atividade", this::remover);
+        botao(botoes, "Pessoas vinculadas", this::pessoas);
         botao(botoes, "Política de frequência", this::politica);
         botao(botoes, "Gerar QR Code", this::qr);
         botao(botoes, "Presença manual", this::manual);
@@ -66,13 +69,39 @@ public class AtividadesDialog extends JDialog {
                                     a.getString("titulo"),
                                     a.getString("tipo"),
                                     a.getString("local"),
-                                    a.getString("inicio")
+                                    formatarData(a.getString("inicio"))
                                 });
                     }
                 });
     }
 
+    private String formatarData(String valor) {
+        try {
+            return java.time.LocalDateTime.parse(valor)
+                    .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+        } catch (java.time.format.DateTimeParseException e) {
+            return valor;
+        }
+    }
+
     private void nova() {
+        editarFormulario(null);
+    }
+
+    private void editar() {
+        Long id = selecionada();
+        if (id == null) return;
+        if (!evento.getString("status").equals("RASCUNHO")) {
+            JOptionPane.showMessageDialog(this, "Somente atividades de eventos em rascunho podem ser editadas.");
+            return;
+        }
+        TarefaTela.executar(
+                this,
+                () -> new JSONObject(api.requisicao("GET", "/atividades/" + id, null)),
+                this::editarFormulario);
+    }
+
+    private void editarFormulario(JSONObject atividade) {
         JPanel form = new JPanel(new GridLayout(0, 2, 6, 6));
         String[] nomes = {
             "Título",
@@ -93,8 +122,22 @@ public class AtividadesDialog extends JDialog {
         campos[2].setText("Oficina");
         campos[5].setText(evento.getString("inicio"));
         campos[6].setText(evento.getString("fim"));
+        if (atividade != null) {
+            campos[0].setText(atividade.optString("titulo"));
+            campos[1].setText(atividade.optString("descricao"));
+            campos[2].setText(atividade.optString("tipo"));
+            campos[3].setText(atividade.optString("trilha"));
+            campos[4].setText(atividade.optString("local"));
+            campos[5].setText(atividade.optString("inicio"));
+            campos[6].setText(atividade.optString("fim"));
+            if (!atividade.isNull("capacidade"))
+                campos[7].setText(String.valueOf(atividade.getInt("capacidade")));
+        }
         if (JOptionPane.showConfirmDialog(
-                        this, form, "Nova atividade", JOptionPane.OK_CANCEL_OPTION)
+                        this,
+                        form,
+                        atividade == null ? "Nova atividade" : "Editar atividade",
+                        JOptionPane.OK_CANCEL_OPTION)
                 != JOptionPane.OK_OPTION) return;
         try {
             JSONObject b =
@@ -107,12 +150,92 @@ public class AtividadesDialog extends JDialog {
                             .put("local", campos[4].getText())
                             .put("inicio", campos[5].getText())
                             .put("fim", campos[6].getText());
-            if (!campos[7].getText().isBlank())
-                b.put("capacidade", Integer.parseInt(campos[7].getText()));
-            TarefaTela.executar(this, () -> api.criarAtividade(b), ok -> carregar());
+            if (!campos[7].getText().isBlank()) {
+                int capacidade = Integer.parseInt(campos[7].getText().trim());
+                if (capacidade < 1) throw new NumberFormatException();
+                b.put("capacidade", capacidade);
+            } else if (atividade != null) {
+                b.put("capacidade", JSONObject.NULL);
+            }
+            TarefaTela.executar(
+                    this,
+                    () ->
+                            atividade == null
+                                    ? api.criarAtividade(b)
+                                    : api.editarAtividade(atividade.getLong("id"), b),
+                    ok -> carregar());
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Capacidade deve ser um número inteiro.");
+            JOptionPane.showMessageDialog(this, "Capacidade deve ser um inteiro positivo ou ficar vazia.");
         }
+    }
+
+    private void remover() {
+        Long id = selecionada();
+        if (id == null) return;
+        if (!evento.getString("status").equals("RASCUNHO")) {
+            JOptionPane.showMessageDialog(this, "Somente atividades de eventos em rascunho podem ser removidas.");
+            return;
+        }
+        int resposta =
+                JOptionPane.showConfirmDialog(
+                        this,
+                        "Remover a atividade selecionada? Só é permitido em evento rascunho.",
+                        "Confirmar remoção",
+                        JOptionPane.YES_NO_OPTION);
+        if (resposta != JOptionPane.YES_OPTION) return;
+        TarefaTela.executar(this, () -> { api.removerAtividade(id); return true; }, ok -> carregar());
+    }
+
+    private void pessoas() {
+        Long id = selecionada();
+        if (id == null) return;
+        String tituloAtividade = String.valueOf(tabela.getValueAt(tabela.getSelectedRow(), 1));
+        TarefaTela.executar(
+                this,
+                () -> api.pessoas(id),
+                lista -> {
+                    StringBuilder texto = new StringBuilder("Pessoas já vinculadas:\n");
+                    for (int i = 0; i < lista.length(); i++) {
+                        JSONObject pessoa = lista.getJSONObject(i);
+                        texto.append("• ")
+                                .append(pessoa.getString("nomePessoa"))
+                                .append(" — ")
+                                .append(pessoa.getString("papel"))
+                                .append(" (conta #")
+                                .append(pessoa.getLong("usuarioId"))
+                                .append(")\n");
+                    }
+                    if (lista.isEmpty()) texto.append("Nenhuma pessoa vinculada.\n");
+                    texto.append("\nPara vincular, é necessário informar o ID de uma conta existente.");
+                    if (JOptionPane.showConfirmDialog(
+                                    this,
+                                    texto.toString(),
+                                    "Pessoas — " + tituloAtividade,
+                                    JOptionPane.OK_CANCEL_OPTION)
+                            != JOptionPane.OK_OPTION) return;
+                    JTextField usuarioId = new JTextField();
+                    JComboBox<String> papel =
+                            new JComboBox<>(new String[] {"PALESTRANTE", "APRESENTADOR", "RESPONSAVEL"});
+                    JPanel formulario = new JPanel(new GridLayout(0, 1, 4, 4));
+                    formulario.add(new JLabel("ID da conta existente"));
+                    formulario.add(usuarioId);
+                    formulario.add(new JLabel("Papel na atividade"));
+                    formulario.add(papel);
+                    if (JOptionPane.showConfirmDialog(
+                                    this, formulario, "Vincular pessoa", JOptionPane.OK_CANCEL_OPTION)
+                            != JOptionPane.OK_OPTION) return;
+                    try {
+                        long conta = Long.parseLong(usuarioId.getText().trim());
+                        TarefaTela.executar(
+                                this,
+                                () -> api.vincularPessoa(id, conta, (String) papel.getSelectedItem()),
+                                vinculada -> JOptionPane.showMessageDialog(
+                                        this,
+                                        vinculada.getString("nomePessoa") + " foi vinculada à atividade."));
+                    } catch (NumberFormatException e) {
+                        JOptionPane.showMessageDialog(this, "Informe o ID numérico de uma conta existente.");
+                    }
+                });
     }
 
     private void politica() {

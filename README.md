@@ -37,7 +37,7 @@ mvn -f desktop/pom.xml clean package
 java -jar desktop/target/desktop-1.0-SNAPSHOT.jar
 ```
 
-O desktop precisa de ambiente gráfico. Entre com `organizador@demo.local`. A base já oferece eventos, criação de atividades em rascunho, publicação, encerramento, políticas de frequência, QR Code, conferência manual por participante, criação de questionário, consulta dos resultados e exportação de frequência em CSV.
+O desktop precisa de ambiente gráfico. Entre com `organizador@demo.local`. A base oferece criação/edição de eventos em rascunho, atividades e vínculos de pessoas por ID de conta, publicação, encerramento, regras de inscrição, políticas de frequência, geração de QR Code, conferência manual, questionários e resultados. A tela **Relatórios** consulta inscritos ou frequência, permite filtrar por atividade e exportar os dois relatórios em CSV.
 
 ### Configuração e banco
 
@@ -77,7 +77,7 @@ Os testes usam **H2 em memória**, sem apagar `data/`. Incluem domínio, persist
 
 ## Limites declarados
 
-A API cobre o núcleo obrigatório; desktop e web são bases funcionais. No desktop ainda faltam, principalmente, edição completa, pessoas vinculadas e regras de inscrição. Criação de questionário e visualização simples de consolidações estão disponíveis, mas precisam de conferência manual em ambiente gráfico. No site falta a tela de edição do perfil e acabamento/validação de usabilidade. Consulte a divisão detalhada antes da apresentação final.
+A API cobre o núcleo obrigatório; desktop e web são bases funcionais. As telas Swing de eventos/atividades, vínculos, regras de inscrição, resultados e relatórios foram conectadas aos endpoints; a conferência manual em ambiente gráfico e o ensaio integrado ainda precisam ser realizados. No site falta a tela de edição do perfil e a validação final de usabilidade. Consulte a divisão detalhada antes da apresentação final.
 
 Políticas de inscrição ficam bloqueadas após a primeira inscrição; frequência após o primeiro registro; questionários são imutáveis após criação. Programação é montada em rascunho e bloqueada após publicação. Isso preserva o histórico com uma implementação simples. Correções manuais de frequência permanecem auditáveis. Relatórios refletem o estado atual; avaliações já enviadas permanecem registradas mesmo após correção posterior de presença.
 
