@@ -60,7 +60,7 @@ O que Carlos deve fazer, nesta ordem:
 1. Rodar o site pela API e entender index.html, style.css, api.js e app.js.
 2. Melhorar a página pública de eventos e a programação: organização visual, informações de local/período, pessoas vinculadas e filtros.
 3. Melhorar cadastro e login, com mensagens claras de sucesso, erro e carregamento.
-4. Implementar consulta/edição do perfil com GET e PUT /usuarios/me.
+4. [Implementado nesta versão] Consultar e editar nome/e-mail do próprio perfil com GET e PUT /usuarios/me. A senha não é alterada por esse formulário.
 5. Melhorar navegação, organização das seções, responsividade e acessibilidade por teclado.
 6. Exibir datas com o fuso retornado pela API e tratar sessão inválida/expirada.
 7. Combinar com Matheus Lima a estrutura visual dos componentes para manter o site consistente.

@@ -10,6 +10,7 @@
 <details><summary>Criar conta</summary><form id="cadastro"><label>Nome <input name="nome" required></label><label>E-mail <input name="email" type="email" required autocomplete="email"></label><label>Senha <input name="senha" type="password" required minlength="8" pattern="(?=.*[A-Za-z])(?=.*[0-9]).{8,}" title="Use pelo menos 8 caracteres, com letras e números." autocomplete="new-password"></label><small>A senha deve ter pelo menos 8 caracteres, com letras e números. A API informa se algum dado for inválido.</small><button>Cadastrar</button></form></details>
 <p id="usuario">Visitante</p>
 </section>
+<section id="perfil-section" hidden><h2>Meu perfil</h2><p>Atualize seu nome e e-mail. A troca de senha não está disponível nesta versão.</p><form id="perfil-form"><label>Nome <input name="nome" required maxlength="255"></label><label>E-mail <input name="email" type="email" required autocomplete="email"></label><button>Salvar perfil</button></form></section>
 <section><h2>Eventos e programação</h2><label>Evento <select id="eventos"><option value="">Selecione</option></select></label><p id="evento-descricao"></p>
 <form id="filtros"><label>Data <input type="date" name="data"></label><label>Trilha <input name="trilha"></label><label>Tipo <input name="tipo"></label><label>Local <input name="local"></label><button>Filtrar</button></form>
 <p id="regras"></p><div id="atividades"></div><button id="inscrever">Confirmar inscrição e atividades selecionadas</button>

@@ -7,6 +7,12 @@ let eventos = [], atividades = [], escolherAtividades = true;
 let camera, detector, cameraAtiva = false;
 // Conteúdo da API entra como texto, nunca como HTML executável.
 function elemento(tag, texto) { const e = document.createElement(tag); if (texto !== undefined) e.textContent = texto; return e; }
+function exibirPerfil(usuario) {
+  $('usuario').textContent = `${usuario.nome} (${usuario.papel})`;
+  $('perfil-form').elements.nome.value = usuario.nome;
+  $('perfil-form').elements.email.value = usuario.email;
+  $('perfil-section').hidden = false;
+}
 function acao(id, evento, tarefa) {
   $(id).addEventListener(evento, async e => {
     e.preventDefault();
@@ -55,9 +61,14 @@ async function agenda() {
   $('agenda').replaceChildren(); (await api.agenda()).forEach(a => $('agenda').append(elemento('li', `${a.titulo} · ${a.inicio} — ${a.fim} · ${a.local}`)));
 }
 function selecionadas() { return [...document.querySelectorAll('input[name=atividade]:checked')].map(e => Number(e.value)); }
-acao('login', 'submit', async e => { const d = dados(e.target); const u = await api.entrar(d.email, d.senha); $('usuario').textContent = `${u.nome} (${u.papel})`; mensagem('Login realizado.'); await carregarEventos(); await agenda(); });
+acao('login', 'submit', async e => { const d = dados(e.target); await api.entrar(d.email, d.senha); exibirPerfil(await api.perfil()); mensagem('Login realizado.'); await carregarEventos(); await agenda(); });
 acao('cadastro', 'submit', async e => { await api.enviar('/usuarios', 'POST', dados(e.target)); mensagem('Conta criada. Entre com seu e-mail e senha.'); e.target.reset(); });
-acao('sair', 'click', async () => { api.sair(); $('usuario').textContent = 'Visitante'; $('inscricoes').replaceChildren(); $('agenda').replaceChildren(); $('atividades').replaceChildren(); $('questionarios').replaceChildren(); await carregarEventos(); mensagem('Você saiu da conta.'); });
+acao('perfil-form', 'submit', async e => {
+  const dadosPerfil = dados(e.target);
+  exibirPerfil(await api.editarPerfil(dadosPerfil.nome, dadosPerfil.email));
+  mensagem('Perfil atualizado.');
+});
+acao('sair', 'click', async () => { pararCamera(); api.sair(); $('usuario').textContent = 'Visitante'; $('perfil-section').hidden = true; $('perfil-form').reset(); $('inscricoes').replaceChildren(); $('agenda').replaceChildren(); $('atividades').replaceChildren(); $('questionarios').replaceChildren(); await carregarEventos(); mensagem('Você saiu da conta.'); });
 acao('eventos', 'change', programacao); acao('filtros', 'submit', programacao);
 acao('inscrever', 'click', async () => { const eventoId = Number($('eventos').value); if (!eventoId) throw new Error('Selecione um evento.'); await api.inscrever(eventoId, selecionadas()); mensagem('Inscrição confirmada.'); await agenda(); });
 acao('atualizar-agenda', 'click', agenda);
@@ -136,5 +147,19 @@ acao('atividade-avaliacao', 'change', async () => {
     $('questionarios').append(form);
   }
 });
-carregarEventos().catch(e => mensagem(e.message));
-if (api.token) api.enviar('/usuarios/me').then(u => { $('usuario').textContent = `${u.nome} (${u.papel})`; }).catch(() => {api.sair();});
+if (api.token) {
+  api.perfil()
+    .then(async usuario => {
+      exibirPerfil(usuario);
+      await carregarEventos();
+      await agenda();
+    })
+    .catch(() => {
+      api.sair();
+      $('usuario').textContent = 'Visitante';
+      $('perfil-section').hidden = true;
+      carregarEventos().catch(e => mensagem(e.message));
+    });
+} else {
+  carregarEventos().catch(e => mensagem(e.message));
+}

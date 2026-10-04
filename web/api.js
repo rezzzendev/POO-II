@@ -13,6 +13,8 @@ export class Api {
   }
   async entrar(email, senha) { const u = await this.enviar('/login', 'POST', {email, senha}); this.token = u.token; sessionStorage.setItem('token', u.token); return u; }
   sair() { this.token = null; sessionStorage.removeItem('token'); }
+  perfil() { return this.enviar('/usuarios/me'); }
+  editarPerfil(nome, email) { return this.enviar('/usuarios/me', 'PUT', {nome, email}); }
   eventos() { return this.enviar('/eventos'); }
   atividades(eventoId, filtros = {}) { return this.enviar('/atividades?' + new URLSearchParams({eventoId, ...filtros})); }
   inscrever(eventoId, atividadeIds) { return this.enviar('/inscricoes', 'POST', {eventoId, atividadeIds}); }

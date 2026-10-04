@@ -10,7 +10,7 @@ Legenda: **M** obrigatório, **D** desejável, **P** opcional. Fontes: especific
 |---|---|---|---|---|
 | 01 Cadastro | M | Usuario, UsuarioService, UsuarioRepositoryJdbc | UsuarioServiceTest, UsuarioTest, ApiIntegracaoTest | API e site; cadastro desktop existente |
 | 02 Login/permissões | M | UsuarioService, Autenticador, SessaoStore, UsuarioHttpHandler | ApiIntegracaoTest.autorizacaoRascunhoEMalformedJson | API e clientes; gerenciamento de papéis por API |
-| 03 Perfil | M | Usuario.editarPerfil, UsuarioService | UsuarioServiceTest | API; tela a cargo de Carlos |
+| 03 Perfil | M | Usuario.editarPerfil, UsuarioService, web/api.js e web/app.js | UsuarioServiceTest; fluxo de tela ainda precisa de conferência manual | API e site; edição autenticada de nome/e-mail |
 | 04 Eventos | M | Evento, EventoHttpHandler, EventoRepositoryJdbc | EventoTest, EventoRepositoryJdbcTest, roteiro CA-01 | API; desktop cria/edita rascunho com local e fuso; validação visual manual pendente |
 | 05 Tipos abertos | M | Atividade, ProgramacaoService | AtividadeTest; criação no roteiro | API e base desktop |
 | 06 Trilhas/espaços | M | AtividadeRepository.buscar | AtividadeRepositoryJdbcTest; filtros no site | API e site |
