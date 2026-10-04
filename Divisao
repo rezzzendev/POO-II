@@ -79,11 +79,11 @@ Inscrição, seleção/troca de atividades, agenda, cancelamento, leitura de QR 
 
 O que Matheus Lima deve fazer, nesta ordem:
 1. Rodar a base, entrar como participante e testar os fluxos já implementados.
-2. Melhorar a confirmação da inscrição e a exibição das atividades já escolhidas.
-3. Preservar/recuperar seleção ao filtrar a programação e tornar clara a troca de atividades.
-4. Melhorar a agenda e o cancelamento, apresentando prazo e mensagens de conflito/vagas devolvidas pela API.
-5. Exibir a situação da frequência e melhorar a leitura do QR pela câmera, com confirmação e mensagens claras quando o navegador não oferecer suporte ou a câmera não estiver disponível.
-6. Melhorar o questionário e informar claramente quando a avaliação foi enviada, quando falta presença e quando já existe resposta.
+2. [Implementado nesta versão] Mostrar a inscrição ativa, recuperar as atividades escolhidas e orientar a alteração da agenda.
+3. [Implementado nesta versão] Preservar seleções locais quando a programação é filtrada e exibir a quantidade escolhida.
+4. [Implementado nesta versão] Mostrar agenda com fuso, confirmar cancelamento e exibir recusas/prazo retornados pela API.
+5. [Base implementada] A leitura de QR usa a câmera e exige login; falta validar com câmera física e navegador compatível.
+6. [Implementado nesta versão] Exibir retorno do envio, bloquear novo envio no formulário após sucesso e apresentar erros de elegibilidade/duplicidade retornados pela API.
 7. Exibir a política de identificação das respostas antes do envio e respeitar os limites/tipos retornados pela API.
 8. Testar o fluxo completo do participante, inclusive tentativas inválidas, em conjunto com Carlos.
 

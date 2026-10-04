@@ -81,3 +81,7 @@ O desktop passou a oferecer criação e edição de evento em rascunho com local
 ## Perfil no site — 04/10/2026
 
 O site agora consulta `GET /usuarios/me` após login/restauração da sessão e permite alterar nome e e-mail por `PUT /usuarios/me`. O formulário não pede nem altera senha; validação de perfil permanece na API. A suíte HTTP da API passou e cobre as rotas de perfil. O Chrome headless carregou a página e o módulo JavaScript; como o teste abriu o arquivo diretamente, sem a API, a chamada de rede falhou como esperado. Ainda falta conferir o fluxo interativamente no navegador servido pela aplicação com uma conta de demonstração. `git diff --check` passou.
+
+## Fluxos do participante na web — 04/10/2026
+
+A seleção de atividades agora permanece ao aplicar filtros; ao entrar, a agenda da conta preenche as escolhas já salvas. A página diferencia inscrição nova de alteração de agenda, desabilita operações pessoais para visitantes, confirma cancelamento e formata horários com o fuso do evento. Após enviar uma avaliação, o formulário bloqueia novo envio; erros de presença, prazo, conflito e duplicidade continuam vindo da API e são apresentados na mensagem da página. `mvn test` passou com 75 testes e `git diff --check` passou. O Chrome headless carregou o HTML e o módulo; a interação real com API, conta e câmera continua pendente de ensaio.

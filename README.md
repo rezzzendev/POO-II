@@ -77,7 +77,7 @@ Os testes usam **H2 em memória**, sem apagar `data/`. Incluem domínio, persist
 
 ## Limites declarados
 
-A API cobre o núcleo obrigatório; desktop e web são bases funcionais. As telas Swing de eventos/atividades, vínculos, regras de inscrição, resultados e relatórios foram conectadas aos endpoints; a conferência manual em ambiente gráfico e o ensaio integrado ainda precisam ser realizados. O site permite consultar e editar nome/e-mail do próprio perfil; a validação final de usabilidade e responsividade ainda precisa ser feita. Consulte a divisão detalhada antes da apresentação final.
+A API cobre o núcleo obrigatório; desktop e web são bases funcionais. As telas Swing de eventos/atividades, vínculos, regras de inscrição, resultados e relatórios foram conectadas aos endpoints; a conferência manual em ambiente gráfico e o ensaio integrado ainda precisam ser realizados. O site permite editar o próprio perfil, mantém seleção de atividades ao filtrar e apresenta a agenda; ainda falta o ensaio final de usabilidade/responsividade e do QR com câmera física. Consulte a divisão detalhada antes da apresentação final.
 
 Políticas de inscrição ficam bloqueadas após a primeira inscrição; frequência após o primeiro registro; questionários são imutáveis após criação. Programação é montada em rascunho e bloqueada após publicação. Isso preserva o histórico com uma implementação simples. Correções manuais de frequência permanecem auditáveis. Relatórios refletem o estado atual; avaliações já enviadas permanecem registradas mesmo após correção posterior de presença.
 

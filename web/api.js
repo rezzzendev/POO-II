@@ -17,9 +17,13 @@ export class Api {
   editarPerfil(nome, email) { return this.enviar('/usuarios/me', 'PUT', {nome, email}); }
   eventos() { return this.enviar('/eventos'); }
   atividades(eventoId, filtros = {}) { return this.enviar('/atividades?' + new URLSearchParams({eventoId, ...filtros})); }
+  regrasInscricao(eventoId) { return this.enviar(`/regras-inscricao/${eventoId}`); }
+  pessoas(atividadeId) { return this.enviar(`/atividades/${atividadeId}/pessoas`); }
   inscrever(eventoId, atividadeIds) { return this.enviar('/inscricoes', 'POST', {eventoId, atividadeIds}); }
   selecionar(id, atividadeIds) { return this.enviar(`/inscricoes/${id}/atividades`, 'PUT', {atividadeIds}); }
   cancelar(id) { return this.enviar(`/inscricoes/${id}/cancelar`, 'POST', {}); }
+  minhasInscricoes() { return this.enviar('/inscricoes/minhas'); }
+  registrarPresencaQr(token) { return this.enviar('/frequencia/qr', 'POST', {token}); }
   agenda() { return this.enviar('/agenda'); }
   questionarios(atividadeId) { return this.enviar(`/questionarios?atividadeId=${atividadeId}`); }
   responder(id, respostas) { return this.enviar(`/questionarios/${id}/respostas`, 'POST', {respostas}); }
