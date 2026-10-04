@@ -84,7 +84,7 @@ O que Matheus Lima deve fazer, nesta ordem:
 4. [Implementado nesta versão] Mostrar agenda com fuso, confirmar cancelamento e exibir recusas/prazo retornados pela API.
 5. [Base implementada] A leitura de QR usa a câmera e exige login; falta validar com câmera física e navegador compatível.
 6. [Implementado nesta versão] Exibir retorno do envio, bloquear novo envio no formulário após sucesso e apresentar erros de elegibilidade/duplicidade retornados pela API.
-7. Exibir a política de identificação das respostas antes do envio e respeitar os limites/tipos retornados pela API.
+7. [Implementado nesta versão] Exibir a política de identificação das respostas e explicar/validar os tipos e limites retornados pela API.
 8. Testar o fluxo completo do participante, inclusive tentativas inválidas, em conjunto com Carlos.
 
 Entrega esperada:

@@ -32,7 +32,7 @@ Legenda: **M** obrigatório, **D** desejável, **P** opcional. Fontes: especific
 | 22 Lançamento manual | M | RegistroFrequencia, FrequenciaService.manual | Teste de correções com autoria/histórico | API e desktop |
 | 23 Calcular presença | M | Frequencia + Strategy | FrequenciaTest: check-in, entrada/saída, manual | API |
 | 24 Questionário | M | Questionario, AvaliacaoService, AvaliacaoRepositoryJdbc | QuestionarioTest, ApiIntegracaoTest | API e criação pelo desktop; conferência visual pendente |
-| 25 Tipos de resposta | M | Pergunta, Texto, EscolhaUnica, Escala | QuestionarioTest; persistência HTTP dos três tipos | API e formulário web |
+| 25 Tipos de resposta | M | Pergunta, Texto, EscolhaUnica, Escala | QuestionarioTest; persistência HTTP dos três tipos | API; site explica e valida os limites retornados |
 | 26 Elegibilidade | M | AvaliacaoService, FrequenciaService | Bloqueio sem presença no HTTP e navegador | API bloqueia inelegível; cliente mostra mensagem |
 | 27 Duplicidade avaliação | M | Restrição UNIQUE de avaliacoes | APIIntegracaoTest e restrição UNIQUE; cliente bloqueia reenvio após sucesso | API e site |
 | 28 Consolidação | M | AvaliacaoService.resumo / AvaliacaoHttpHandler | Script e teste HTTP, média/distribuição/comentário | API e consulta pelo desktop; conferência visual manual pendente |

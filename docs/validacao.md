@@ -85,3 +85,7 @@ O site agora consulta `GET /usuarios/me` após login/restauração da sessão e 
 ## Fluxos do participante na web — 04/10/2026
 
 A seleção de atividades agora permanece ao aplicar filtros; ao entrar, a agenda da conta preenche as escolhas já salvas. A página diferencia inscrição nova de alteração de agenda, desabilita operações pessoais para visitantes, confirma cancelamento e formata horários com o fuso do evento. Após enviar uma avaliação, o formulário bloqueia novo envio; erros de presença, prazo, conflito e duplicidade continuam vindo da API e são apresentados na mensagem da página. `mvn test` passou com 75 testes e `git diff --check` passou. O Chrome headless carregou o HTML e o módulo; a interação real com API, conta e câmera continua pendente de ensaio.
+
+## Questionário no site — 04/10/2026
+
+O formulário agora destaca a política de identificação retornada pela API e informa, por pergunta, se a resposta é texto (até 4000 caracteres), escolha única ou escala (inteiro e limites inclusivos). Antes de enviar, valida respostas vazias, tipo, faixa e opção escolhida; a API continua aplicando as regras definitivas. A conferência interativa com questionário real e conta elegível ainda está pendente.

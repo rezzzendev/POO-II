@@ -241,13 +241,29 @@ acao('atividade-avaliacao', 'change', async () => {
   const id = Number($('atividade-avaliacao').value); if (!id) return;
   $('questionarios').replaceChildren();
   for (const q of await api.questionarios(id)) {
-    const form = elemento('form'); form.className = 'questionario'; form.append(elemento('h3', q.titulo), elemento('p', q.politicaIdentificacao));
+    const form = elemento('form'); form.className = 'questionario';
+    form.append(elemento('h3', q.titulo));
+    const politica = elemento('p', q.politicaIdentificacao);
+    politica.className = 'politica-avaliacao';
+    form.append(politica);
     for (const p of q.perguntas) {
       const label = elemento('label', p.enunciado); let campo;
-      if (p.tipo === 'ESCOLHA_UNICA') { campo = elemento('select'); campo.add(new Option('Selecione', '')); p.opcoes.forEach(v => campo.add(new Option(v, v))); }
-      else if (p.tipo === 'ESCALA') { campo = elemento('input'); campo.type = 'number'; campo.min = p.minimo; campo.max = p.maximo; campo.step = '1'; }
-      else { campo = elemento('textarea'); campo.maxLength = 4000; }
-      campo.name = p.id; campo.required = true; label.append(campo); form.append(label);
+      let orientacao;
+      if (p.tipo === 'ESCOLHA_UNICA') {
+        campo = elemento('select'); campo.add(new Option('Selecione uma opção', ''));
+        p.opcoes.forEach(v => campo.add(new Option(v, v)));
+        orientacao = `Escolha uma opção entre as ${p.opcoes.length} disponíveis.`;
+      } else if (p.tipo === 'ESCALA') {
+        campo = elemento('input'); campo.type = 'number'; campo.min = p.minimo; campo.max = p.maximo; campo.step = '1';
+        orientacao = `Informe um número inteiro de ${p.minimo} a ${p.maximo}.`;
+      } else if (p.tipo === 'TEXTO') {
+        campo = elemento('textarea'); campo.maxLength = 4000;
+        orientacao = 'Resposta obrigatória, com até 4000 caracteres.';
+      } else {
+        throw new Error(`Tipo de resposta não reconhecido: ${p.tipo}.`);
+      }
+      campo.name = p.id; campo.required = true; label.append(campo);
+      form.append(label, elemento('small', orientacao));
     }
     const botao = elemento('button', 'Enviar avaliação'); form.append(botao);
     form.onsubmit = async e => {
@@ -255,7 +271,21 @@ acao('atividade-avaliacao', 'change', async () => {
       if (form.dataset.enviada === 'true') return;
       botao.disabled = true;
       try {
-        await api.responder(q.id, dados(form));
+        const respostas = dados(form);
+        for (const p of q.perguntas) {
+          const resposta = respostas[p.id];
+          if (!resposta || !resposta.trim()) throw new Error('Responda todas as perguntas antes de enviar.');
+          if (p.tipo === 'TEXTO' && resposta.length > 4000)
+            throw new Error('Cada resposta de texto pode ter no máximo 4000 caracteres.');
+          if (p.tipo === 'ESCALA') {
+            const valor = Number(resposta);
+            if (!Number.isInteger(valor) || valor < p.minimo || valor > p.maximo)
+              throw new Error(`Na pergunta de escala, informe um inteiro de ${p.minimo} a ${p.maximo}.`);
+          }
+          if (p.tipo === 'ESCOLHA_UNICA' && !p.opcoes.includes(resposta))
+            throw new Error('Selecione uma das opções apresentadas.');
+        }
+        await api.responder(q.id, respostas);
         form.dataset.enviada = 'true';
         form.querySelectorAll('input, select, textarea').forEach(campo => campo.disabled = true);
         botao.textContent = 'Avaliação enviada';
