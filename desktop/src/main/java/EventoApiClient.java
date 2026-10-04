@@ -22,9 +22,14 @@ public class EventoApiClient {
             HttpClient.newBuilder().connectTimeout(java.time.Duration.ofSeconds(5)).build();
     private String token;
     private String usuarioLogado;
+    private String papelLogado;
 
     public String usuarioLogado() {
         return usuarioLogado;
+    }
+
+    public String papelLogado() {
+        return papelLogado;
     }
 
     public void login(String email, String senha) throws IOException, InterruptedException {
@@ -37,7 +42,8 @@ public class EventoApiClient {
 
         JSONObject json = new JSONObject(resposta.body());
         this.token = json.getString("token");
-        this.usuarioLogado = json.getString("nome") + " (" + json.getString("papel") + ")";
+        this.papelLogado = json.getString("papel");
+        this.usuarioLogado = json.getString("nome") + " (" + papelLogado + ")";
     }
 
     public void cadastrar(String nome, String email, String senha)

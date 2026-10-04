@@ -6,10 +6,13 @@ import java.util.Base64;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
-/** Base de administração. Habny pode acrescentar telas usando EventoApiClient e TarefaTela. */
-public class AtividadesDialog extends JDialog {
+/** Painel de programação e frequência embutido na janela principal. */
+public class AtividadesPainel extends JPanel {
     private final EventoApiClient api;
-    private final JSONObject evento;
+    private JSONObject evento;
+    private final JLabel contexto = new JLabel("Selecione um evento para carregar a programação.");
+    private final java.util.List<JButton> botoesComEvento = new java.util.ArrayList<>();
+    private long sequenciaCarregamento;
     private final DefaultTableModel modelo =
             new DefaultTableModel(new String[] {"ID", "Título", "Tipo", "Local", "Início"}, 0) {
                 public boolean isCellEditable(int linha, int coluna) {
@@ -18,13 +21,10 @@ public class AtividadesDialog extends JDialog {
             };
     private final JTable tabela = new JTable(modelo);
 
-    public AtividadesDialog(JFrame pai, EventoApiClient api, JSONObject evento) {
-        super(pai, "Atividades — " + evento.getString("titulo"), false);
+    public AtividadesPainel(EventoApiClient api) {
+        super(new BorderLayout());
         this.api = api;
-        this.evento = evento;
-        setSize(900, 450);
-        setLocationRelativeTo(pai);
-        setLayout(new BorderLayout());
+        add(contexto, BorderLayout.NORTH);
         add(new JScrollPane(tabela), BorderLayout.CENTER);
         JPanel botoes = new JPanel();
         botao(botoes, "Atualizar", this::carregar);
@@ -35,15 +35,26 @@ public class AtividadesDialog extends JDialog {
         botao(botoes, "Política de frequência", this::politica);
         botao(botoes, "Gerar QR Code", this::qr);
         botao(botoes, "Presença manual", this::manual);
-        botao(botoes, "Questionários", this::questionarios);
         add(botoes, BorderLayout.SOUTH);
-        carregar();
+        definirEvento(null);
+    }
+
+    public void definirEvento(JSONObject evento) {
+        this.evento = evento;
+        boolean habilitado = evento != null;
+        contexto.setText(habilitado
+                ? "Programação: " + evento.optString("titulo") + " · " + evento.optString("status")
+                : "Selecione um evento para carregar a programação.");
+        botoesComEvento.forEach(botao -> botao.setEnabled(habilitado));
+        modelo.setRowCount(0);
+        if (habilitado) carregar();
     }
 
     private void botao(JPanel painel, String texto, Runnable acao) {
         JButton b = new JButton(texto);
         b.addActionListener(e -> acao.run());
         painel.add(b);
+        botoesComEvento.add(b);
     }
 
     private Long selecionada() {
@@ -56,10 +67,16 @@ public class AtividadesDialog extends JDialog {
     }
 
     private void carregar() {
+        if (evento == null) return;
+        long eventoId = evento.getLong("id");
+        long chamada = ++sequenciaCarregamento;
         TarefaTela.executar(
                 this,
-                () -> api.atividades(evento.getLong("id")),
+                () -> api.atividades(eventoId),
                 lista -> {
+                    if (chamada != sequenciaCarregamento
+                            || evento == null
+                            || evento.getLong("id") != eventoId) return;
                     modelo.setRowCount(0);
                     for (Object o : lista) {
                         JSONObject a = (JSONObject) o;
@@ -368,8 +385,4 @@ public class AtividadesDialog extends JDialog {
                 });
     }
 
-    private void questionarios() {
-        Long id = selecionada();
-        if (id != null) new QuestionariosDialog((JFrame) getOwner(), api, id).setVisible(true);
-    }
 }

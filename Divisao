@@ -1,5 +1,5 @@
 DIVISÃO DE RESPONSABILIDADES — PLATAFORMA DE GESTÃO DE EVENTOS
-Atualizada em 24/09/2026 conforme orientação de Matheus Rodrigues de Rezende.
+Atualizada em 04/10/2026 conforme orientação de Matheus Rodrigues de Rezende.
 
 Esta divisão vale para o trabalho a partir da base entregue hoje. Matheus Rezende informou ter feito a implementação anterior da API, desktop e web. As tarefas abaixo não atribuem esse trabalho passado aos demais integrantes.
 
@@ -24,7 +24,7 @@ Acompanhar a integração, explicar as decisões de POO e preparar a demonstraç
 2. HABNY GABRIEL DE BASTOS BATISTA — DESKTOP ADMINISTRATIVO
 
 Pasta principal: desktop/src/main/java/
-Arquivos iniciais: LoginScreen.java, DesktopApp.java, AtividadesDialog.java, EventoApiClient.java e TarefaTela.java.
+Arquivos principais: LoginScreen.java, DesktopApp.java, AtividadesPainel.java, QuestionariosPainel.java, RelatoriosPainel.java, EventoApiClient.java e TarefaTela.java.
 
 O que já existe:
 - Login e cadastro.
@@ -35,15 +35,18 @@ O que já existe:
 - Lançamento e correção manual de presença com justificativa.
 - Exportação de frequência em CSV.
 
-O que Habny deve fazer, nesta ordem:
-1. Rodar a API e o desktop seguindo o README e testar o que já existe.
-2. Completar o formulário de evento: local e fuso na criação, edição dos dados enquanto estiver em rascunho e apresentação amigável de datas.
-3. Completar edição e remoção de atividades em rascunho; acrescentar vínculo de pessoas com seus papéis.
-4. Criar a tela de regras de inscrição: permitir escolha de atividades, controlar vagas e definir prazo de cancelamento.
-5. Criar o editor de questionários: título, perguntas de texto, escolha única e escala. O questionário é enviado pronto à API; não é editável depois da criação nesta versão.
-6. Criar tela de resultados das avaliações e consulta de relatórios de inscritos/frequência, com filtros e totalizações.
-7. Melhorar feedback, estados de carregamento e bloqueio de cliques repetidos; usar TarefaTela para chamadas HTTP fora da thread gráfica.
-8. Acrescentar tela administrativa de alteração de papéis, usando o endpoint existente e respeitando a permissão de administrador.
+O que já foi implementado nesta base:
+1. [Implementado] Criar e editar evento em rascunho, incluindo local e fuso; publicar, encerrar e remover rascunhos.
+2. [Implementado] Criar, editar e remover atividades em rascunho; consultar e vincular pessoas por ID de conta.
+3. [Implementado] Configurar escolha de atividades, controle de vagas e prazo de cancelamento.
+4. [Implementado] Configurar frequência, gerar QR, fazer lançamento manual auditável e corrigir presenças.
+5. [Implementado] Criar questionários dos três tipos de resposta e consultar resultados.
+6. [Implementado] Consultar e exportar relatórios de inscritos e frequência em CSV.
+7. [Implementado] Alterar o papel de outra conta pela API, com a permissão confirmada no backend.
+8. [Implementado] Organizar as funções em uma janela Swing, com áreas separadas por abas; chamadas HTTP ficam fora da thread gráfica.
+
+O que falta para Habny concluir:
+1. Executar os fluxos no desktop com a API ativa, testar caminhos válidos e erros e conferir os controles visualmente.
 
 Entrega esperada:
 Conseguir montar evento e programação, publicar, configurar frequência e questionário, gerar QR, corrigir presença, consultar resultados e exportar relatório pela interface. Demonstrar um erro relevante, como conflito ou falta de permissão.
@@ -56,14 +59,19 @@ Arquivos iniciais: index.html, style.css, api.js e app.js.
 O que já existe:
 Consulta de eventos, programação e pessoas, filtros, login e cadastro. A base já consome a API real.
 
-O que Carlos deve fazer, nesta ordem:
-1. Rodar o site pela API e entender index.html, style.css, api.js e app.js.
-2. Melhorar a página pública de eventos e a programação: organização visual, informações de local/período, pessoas vinculadas e filtros.
-3. Melhorar cadastro e login, com mensagens claras de sucesso, erro e carregamento.
+O que já foi implementado nesta base:
+1. [Implementado] Página pública responsiva, com navegação, programação, pessoas vinculadas e filtros.
+2. [Implementado] Cadastro, login, edição do perfil e mensagens de retorno da API.
+3. [Implementado] Navegação por teclado, foco visível e layout adaptado para telas menores.
+4. [Implementado] Datas e horários acompanhados pelo fuso informado no evento.
+
+O que falta para Carlos concluir:
+1. Rodar o site com a API e testar os formulários em computador e celular.
+2. Ensaiar com Matheus Lima os fluxos integrados do participante.
 4. [Implementado nesta versão] Consultar e editar nome/e-mail do próprio perfil com GET e PUT /usuarios/me. A senha não é alterada por esse formulário.
-5. Melhorar navegação, organização das seções, responsividade e acessibilidade por teclado.
-6. Exibir datas com o fuso retornado pela API e tratar sessão inválida/expirada.
-7. Combinar com Matheus Lima a estrutura visual dos componentes para manter o site consistente.
+5. [Implementado] Melhorar navegação, organização das seções, responsividade e acessibilidade por teclado.
+6. [Implementado] Exibir datas com o fuso do evento e encerrar sessão inválida ou expirada.
+7. [Pendente] Conferir interativamente os fluxos no navegador e revisar detalhes visuais identificados no ensaio.
 
 Entrega esperada:
 Um visitante consegue encontrar o evento, entender a programação, criar conta, entrar e atualizar o perfil, com feedback compreensível e funcionamento em telas menores.
@@ -85,7 +93,7 @@ O que Matheus Lima deve fazer, nesta ordem:
 5. [Base implementada] A leitura de QR usa a câmera e exige login; falta validar com câmera física e navegador compatível.
 6. [Implementado nesta versão] Exibir retorno do envio, bloquear novo envio no formulário após sucesso e apresentar erros de elegibilidade/duplicidade retornados pela API.
 7. [Implementado nesta versão] Exibir a política de identificação das respostas e explicar/validar os tipos e limites retornados pela API.
-8. Testar o fluxo completo do participante, inclusive tentativas inválidas, em conjunto com Carlos.
+8. [Pendente] Testar o fluxo completo do participante, inclusive tentativas inválidas, em conjunto com Carlos; testar a câmera física para leitura do QR.
 
 Entrega esperada:
 O participante se inscreve, organiza sua agenda, registra presença e avalia quando elegível, entendendo também por que uma operação foi recusada.
@@ -110,11 +118,6 @@ O participante se inscreve, organiza sua agenda, registra presença e avalia qua
 - Registrar commits reais e explicar o que foi implementado. Não atribuir contribuições retroativas.
 - Não declarar S8 concluída antes da validação conjunta das interfaces.
 
-7. SEQUÊNCIA SUGERIDA
+7. FECHAMENTO
 
-24/09: cada integrante executa a base e identifica seus arquivos.
-25 a 27/09: Habny termina as telas administrativas; Carlos e Matheus Lima completam o site; Matheus Rezende apoia a API e a integração.
-28/09: juntar as alterações, executar testes e ensaiar os cenários CA-01 a CA-07.
-29/09: demonstração prevista no cronograma; confirmar data e horário com o professor. Há orientação prevista em 01/10.
-
-As datas intermediárias são planejamento sugerido da equipe, não prazos confirmados pelo docente.
+O código da API e as duas interfaces está implementado. `mvn test` cobre domínio, persistência e fluxos HTTP; `mvn -f desktop/pom.xml clean package` valida a compilação do cliente Swing. Ainda é responsabilidade da equipe fazer o ensaio manual com a API ativa: testar os fluxos CA-01 a CA-07 pelas telas, verificar autorização e mensagens de erro, conferir o desktop no ambiente gráfico e ler QR com câmera física. Só depois desse ensaio registrem a demonstração final e marquem S8 como concluída.

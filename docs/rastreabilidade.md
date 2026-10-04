@@ -9,7 +9,7 @@ Legenda: **M** obrigatório, **D** desejável, **P** opcional. Fontes: especific
 | RF | Prioridade | Responsabilidade / implementação | Verificação ou roteiro | Estado nesta entrega |
 |---|---|---|---|---|
 | 01 Cadastro | M | Usuario, UsuarioService, UsuarioRepositoryJdbc | UsuarioServiceTest, UsuarioTest, ApiIntegracaoTest | API e site; cadastro desktop existente |
-| 02 Login/permissões | M | UsuarioService, Autenticador, SessaoStore, UsuarioHttpHandler | ApiIntegracaoTest.autorizacaoRascunhoEMalformedJson | API e clientes; gerenciamento de papéis por API |
+| 02 Login/permissões | M | UsuarioService, Autenticador, SessaoStore, UsuarioHttpHandler | ApiIntegracaoTest.autorizacaoRascunhoEMalformedJson; painel chama PUT de papel | API e desktop; a API autoriza alterações de papel |
 | 03 Perfil | M | Usuario.editarPerfil, UsuarioService, web/api.js e web/app.js | UsuarioServiceTest; fluxo de tela ainda precisa de conferência manual | API e site; edição autenticada de nome/e-mail |
 | 04 Eventos | M | Evento, EventoHttpHandler, EventoRepositoryJdbc | EventoTest, EventoRepositoryJdbcTest, roteiro CA-01 | API; desktop cria/edita rascunho com local e fuso; validação visual manual pendente |
 | 05 Tipos abertos | M | Atividade, ProgramacaoService | AtividadeTest; criação no roteiro | API e base desktop |
@@ -17,7 +17,7 @@ Legenda: **M** obrigatório, **D** desejável, **P** opcional. Fontes: especific
 | 07 Conflito programação | M | Atividade.conflitaCom, ProgramacaoService | AtividadeTest; erro de conflito antes de publicar | API; validar tela final |
 | 08 Pessoas vinculadas | M | VinculoPessoa, AtividadeRepositoryJdbc | AtividadeRepositoryJdbcTest; seed com palestrante | API, exibição web e vínculo pelo desktop usando ID de conta; validação visual manual pendente |
 | 09 Filtros combináveis | M | AtividadeRepository.buscar, AtividadeHttpHandler | AtividadeRepositoryJdbcTest; data/trilha/tipo/local no site | API e site |
-| 10 Página pública | M | SiteHttpHandler, web | ApiIntegracaoTest e navegador | Base funcional |
+| 10 Página pública | M | SiteHttpHandler, web | ApiIntegracaoTest; computador e celular pendentes de conferência manual | Site responsivo; integração manual pendente |
 | 11 Programação/pessoas | M | web/app.js, /atividades e /pessoas | Seed e navegador; foto não exigida | Base funcional |
 | 12 Inscrição pelo site | M | web/Api.inscrever, InscricaoService | ApiIntegracaoTest; seleção preservada e confirmação bloqueada sem sessão | Site funcional; revisão interativa pendente |
 | 13 Configurar inscrição | M | RegrasInscricao, InscricaoService.configurar | ApiIntegracaoTest.inscricaoSomenteEventoEFrequenciaManual | API e editor desktop; API bloqueia alteração após a primeira inscrição |
@@ -31,7 +31,7 @@ Legenda: **M** obrigatório, **D** desejável, **P** opcional. Fontes: especific
 | 21 Ler QR | M | BarcodeDetector no navegador, FrequenciaService.registrarQr | ApiIntegracaoTest valida token e rejeita pedido sem token; leitura física da câmera pendente | API e site; leitura exige sessão |
 | 22 Lançamento manual | M | RegistroFrequencia, FrequenciaService.manual | Teste de correções com autoria/histórico | API e desktop |
 | 23 Calcular presença | M | Frequencia + Strategy | FrequenciaTest: check-in, entrada/saída, manual | API |
-| 24 Questionário | M | Questionario, AvaliacaoService, AvaliacaoRepositoryJdbc | QuestionarioTest, ApiIntegracaoTest | API e criação pelo desktop; conferência visual pendente |
+| 24 Questionário | M | Questionario, AvaliacaoService, AvaliacaoRepositoryJdbc | QuestionarioTest, ApiIntegracaoTest | API; criação e resultados na aba Swing, validação visual pendente |
 | 25 Tipos de resposta | M | Pergunta, Texto, EscolhaUnica, Escala | QuestionarioTest; persistência HTTP dos três tipos | API; site explica e valida os limites retornados |
 | 26 Elegibilidade | M | AvaliacaoService, FrequenciaService | Bloqueio sem presença no HTTP e navegador | API bloqueia inelegível; cliente mostra mensagem |
 | 27 Duplicidade avaliação | M | Restrição UNIQUE de avaliacoes | APIIntegracaoTest e restrição UNIQUE; cliente bloqueia reenvio após sucesso | API e site |

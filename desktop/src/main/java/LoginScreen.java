@@ -1,5 +1,4 @@
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.GridLayout;
 
@@ -42,10 +41,6 @@ public class LoginScreen extends JFrame {
         campos.add(new JLabel("Senha"));
         campos.add(senha);
 
-        JLabel mensagem = new JLabel(" ");
-        mensagem.setForeground(new Color(176, 0, 32));
-        mensagem.setBorder(BorderFactory.createEmptyBorder(0, 16, 0, 16));
-
         JButton entrar = new JButton("Entrar");
         JButton cadastrar = new JButton("Criar conta");
 
@@ -55,20 +50,31 @@ public class LoginScreen extends JFrame {
 
         entrar.addActionListener(
                 e -> {
-                    try {
-                        api.login(email.getText(), new String(senha.getPassword()));
-                        dispose();
-                        SwingUtilities.invokeLater(() -> new DesktopApp(api).setVisible(true));
-                    } catch (Exception ex) {
-                        mensagem.setText(
-                                mensagem(ex, "Não foi possível entrar. Tente novamente."));
-                    }
+                    entrar.setEnabled(false);
+                    cadastrar.setEnabled(false);
+                    String emailDigitado = email.getText().trim();
+                    String senhaDigitada = new String(senha.getPassword());
+                    TarefaTela.executar(
+                            this,
+                            () -> {
+                                api.login(emailDigitado, senhaDigitada);
+                                return true;
+                            },
+                            ok -> {
+                                dispose();
+                                SwingUtilities.invokeLater(() -> new DesktopApp(api).setVisible(true));
+                            },
+                            () -> {
+                                if (isDisplayable()) {
+                                    entrar.setEnabled(true);
+                                    cadastrar.setEnabled(true);
+                                }
+                            });
                 });
 
         cadastrar.addActionListener(e -> abrirDialogoCadastro(this));
 
         JPanel raiz = new JPanel(new BorderLayout());
-        raiz.add(mensagem, BorderLayout.NORTH);
         raiz.add(campos, BorderLayout.CENTER);
         raiz.add(botoes, BorderLayout.SOUTH);
         return raiz;
@@ -95,26 +101,28 @@ public class LoginScreen extends JFrame {
             return;
         }
 
-        try {
-            api.cadastrar(nome.getText(), email.getText(), new String(senha.getPassword()));
-            JOptionPane.showMessageDialog(pai, "Conta criada. Agora entra com e-mail e senha.");
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(
-                    pai,
-                    mensagem(
-                            e,
-                            "Não foi possível cadastrar. Confira os dados e tente novamente."),
-                    "Erro",
-                    JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    private String mensagem(Exception erro, String padrao) {
-        String texto = erro.getMessage();
-        return texto == null || texto.isBlank() ? padrao : texto;
+        String nomeDigitado = nome.getText().trim();
+        String emailDigitado = email.getText().trim();
+        String senhaDigitada = new String(senha.getPassword());
+        TarefaTela.executar(
+                pai,
+                () -> {
+                    api.cadastrar(nomeDigitado, emailDigitado, senhaDigitada);
+                    return true;
+                },
+                ok -> JOptionPane.showMessageDialog(pai, "Conta criada. Agora entre com e-mail e senha."));
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new LoginScreen().setVisible(true));
+        SwingUtilities.invokeLater(
+                () -> {
+                    try {
+                        javax.swing.UIManager.setLookAndFeel(
+                                javax.swing.UIManager.getSystemLookAndFeelClassName());
+                    } catch (Exception ignorado) {
+                        // Mantém o visual padrão do Swing caso o tema do sistema não esteja disponível.
+                    }
+                    new LoginScreen().setVisible(true);
+                });
     }
 }

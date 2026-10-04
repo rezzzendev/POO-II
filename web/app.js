@@ -12,9 +12,13 @@ let camera, detector, cameraAtiva = false;
 function elemento(tag, texto) { const e = document.createElement(tag); if (texto !== undefined) e.textContent = texto; return e; }
 function exibirPerfil(usuario) {
   $('usuario').textContent = `${usuario.nome} (${usuario.papel})`;
+  $('sair').disabled = false;
+  $('sair').hidden = false;
   $('perfil-form').elements.nome.value = usuario.nome;
   $('perfil-form').elements.email.value = usuario.email;
   $('perfil-section').hidden = false;
+  $('login').hidden = true;
+  $('cadastro-container').hidden = true;
   $('inscrever').disabled = false;
   $('abrir-camera').disabled = false;
   $('atualizar-agenda').disabled = false;
@@ -161,7 +165,7 @@ acao('perfil-form', 'submit', async e => {
   exibirPerfil(await api.editarPerfil(dadosPerfil.nome, dadosPerfil.email));
   mensagem('Perfil atualizado.');
 });
-acao('sair', 'click', async () => { pararCamera(); api.sair(); $('usuario').textContent = 'Visitante'; $('perfil-section').hidden = true; $('perfil-form').reset(); $('inscrever').disabled = true; $('inscrever').hidden = true; $('abrir-camera').disabled = true; $('atualizar-agenda').disabled = true; $('atividade-avaliacao').disabled = true; inscricoes = []; selecoesPorEvento.clear(); $('eventos').value = ''; $('inscricoes').replaceChildren(); $('agenda').replaceChildren(); $('atividades').replaceChildren(); $('questionarios').replaceChildren(); await programacao(); await carregarEventos(); mensagem('Você saiu da conta.'); });
+acao('sair', 'click', async () => { pararCamera(); api.sair(); $('usuario').textContent = 'Visitante'; $('login').hidden = false; $('cadastro-container').hidden = false; $('sair').disabled = true; $('sair').hidden = true; $('perfil-section').hidden = true; $('perfil-form').reset(); $('inscrever').disabled = true; $('inscrever').hidden = true; $('abrir-camera').disabled = true; $('atualizar-agenda').disabled = true; $('atividade-avaliacao').disabled = true; inscricoes = []; selecoesPorEvento.clear(); $('eventos').value = ''; $('inscricoes').replaceChildren(); $('agenda').replaceChildren(); $('atividades').replaceChildren(); $('questionarios').replaceChildren(); await programacao(); await carregarEventos(); mensagem('Você saiu da conta.'); });
 acao('eventos', 'change', programacao); acao('filtros', 'submit', programacao);
 acao('inscrever', 'click', async () => {
   if (!api.token) throw new Error('Entre na sua conta para se inscrever ou alterar sua agenda.');
@@ -308,6 +312,10 @@ if (api.token) {
     .catch(() => {
       api.sair();
       $('usuario').textContent = 'Visitante';
+      $('sair').disabled = true;
+      $('sair').hidden = true;
+      $('login').hidden = false;
+      $('cadastro-container').hidden = false;
       $('perfil-section').hidden = true;
       $('inscrever').disabled = true;
       $('abrir-camera').disabled = true;
@@ -316,6 +324,7 @@ if (api.token) {
       carregarEventos().catch(e => mensagem(e.message));
     });
 } else {
+  $('sair').disabled = true;
   $('inscrever').disabled = true;
   $('abrir-camera').disabled = true;
   $('atualizar-agenda').disabled = true;

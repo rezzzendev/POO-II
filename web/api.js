@@ -5,9 +5,18 @@ export class Api {
     const headers = {};
     if (this.token) headers.Authorization = `Bearer ${this.token}`;
     if (corpo !== undefined) headers['Content-Type'] = 'application/json';
-    const resposta = await fetch(this.base + caminho, {method: metodo, headers, body: corpo === undefined ? undefined : JSON.stringify(corpo)});
+    let resposta;
+    try {
+      resposta = await fetch(this.base + caminho, {method: metodo, headers, body: corpo === undefined ? undefined : JSON.stringify(corpo)});
+    } catch {
+      throw new Error('Não foi possível conectar à API. Confira se a aplicação está iniciada e tente novamente.');
+    }
     const texto = await resposta.text();
-    const json = texto ? JSON.parse(texto) : null;
+    let json = null;
+    if (texto) {
+      try { json = JSON.parse(texto); }
+      catch { throw new Error('A API retornou uma resposta que o site não conseguiu interpretar.'); }
+    }
     if (!resposta.ok) throw new Error(json?.erro || `Erro ${resposta.status}`);
     return json;
   }

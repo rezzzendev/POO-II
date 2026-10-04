@@ -8,7 +8,6 @@ import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -19,10 +18,14 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
-/** Criação simples de questionários e consulta de resultados pela API compartilhada. */
-public class QuestionariosDialog extends JDialog {
+/** Painel de criação de questionários e consulta de resultados pela API compartilhada. */
+public class QuestionariosPainel extends JPanel {
     private final EventoApiClient api;
-    private final long atividadeId;
+    private long atividadeId;
+    private long sequenciaCarregamento;
+    private final JLabel contexto = new JLabel("Selecione uma atividade para consultar questionários.");
+    private final JButton novo = new JButton("Novo questionário");
+    private final JButton resultados = new JButton("Ver resultados");
     private final List<JSONObject> questionarios = new ArrayList<>();
     private final DefaultTableModel modelo =
             new DefaultTableModel(new String[] {"ID", "Título", "Perguntas"}, 0) {
@@ -33,34 +36,45 @@ public class QuestionariosDialog extends JDialog {
             };
     private final JTable tabela = new JTable(modelo);
 
-    public QuestionariosDialog(JFrame pai, EventoApiClient api, long atividadeId) {
-        super(pai, "Questionários da atividade", false);
+    public QuestionariosPainel(EventoApiClient api) {
+        super(new BorderLayout());
         this.api = api;
-        this.atividadeId = atividadeId;
-        setSize(650, 360);
-        setLocationRelativeTo(pai);
-        setLayout(new BorderLayout());
+        add(contexto, BorderLayout.NORTH);
         add(new JScrollPane(tabela), BorderLayout.CENTER);
 
         JPanel botoes = new JPanel();
         JButton atualizar = new JButton("Atualizar");
         atualizar.addActionListener(e -> carregar());
-        JButton novo = new JButton("Novo questionário");
         novo.addActionListener(e -> novo());
-        JButton resultados = new JButton("Ver resultados");
         resultados.addActionListener(e -> resultados());
         botoes.add(atualizar);
         botoes.add(novo);
         botoes.add(resultados);
         add(botoes, BorderLayout.SOUTH);
-        carregar();
+        definirAtividade(0, null);
+    }
+
+    public void definirAtividade(long atividadeId, String titulo) {
+        this.atividadeId = atividadeId;
+        boolean habilitado = atividadeId > 0;
+        contexto.setText(habilitado ? "Questionários da atividade: " + titulo
+                : "Selecione uma atividade para consultar questionários.");
+        novo.setEnabled(habilitado);
+        resultados.setEnabled(habilitado);
+        questionarios.clear();
+        modelo.setRowCount(0);
+        if (habilitado) carregar();
     }
 
     private void carregar() {
+        if (atividadeId <= 0) return;
+        long id = atividadeId;
+        long chamada = ++sequenciaCarregamento;
         TarefaTela.executar(
                 this,
-                () -> api.questionarios(atividadeId),
+                () -> api.questionarios(id),
                 lista -> {
+                    if (chamada != sequenciaCarregamento || atividadeId != id) return;
                     questionarios.clear();
                     modelo.setRowCount(0);
                     for (int i = 0; i < lista.length(); i++) {

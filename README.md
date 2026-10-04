@@ -37,7 +37,7 @@ mvn -f desktop/pom.xml clean package
 java -jar desktop/target/desktop-1.0-SNAPSHOT.jar
 ```
 
-O desktop precisa de ambiente gráfico. Entre com `organizador@demo.local`. A base oferece criação/edição de eventos em rascunho, atividades e vínculos de pessoas por ID de conta, publicação, encerramento, regras de inscrição, políticas de frequência, geração de QR Code, conferência manual, questionários e resultados. A tela **Relatórios** consulta inscritos ou frequência, permite filtrar por atividade e exportar os dois relatórios em CSV.
+O desktop precisa de ambiente gráfico. Entre com `organizador@demo.local`. Após o login, os recursos ficam em uma janela Swing única: a lista de eventos fica à esquerda e as abas à direita separam gestão do evento, programação/presença, questionários/resultados, relatórios e papéis. É possível criar/editar eventos em rascunho, administrar atividades e vínculos por ID, publicar, encerrar, configurar inscrições e frequência, gerar QR, lançar presença e consultar/exportar CSV. A API decide as permissões; a tela não concede papéis por conta própria.
 
 ### Configuração e banco
 
@@ -77,7 +77,7 @@ Os testes usam **H2 em memória**, sem apagar `data/`. Incluem domínio, persist
 
 ## Limites declarados
 
-A API cobre o núcleo obrigatório; desktop e web são bases funcionais. As telas Swing de eventos/atividades, vínculos, regras de inscrição, resultados e relatórios foram conectadas aos endpoints; a conferência manual em ambiente gráfico e o ensaio integrado ainda precisam ser realizados. O site permite editar o próprio perfil, mantém seleção de atividades ao filtrar e apresenta a agenda; ainda falta o ensaio final de usabilidade/responsividade e do QR com câmera física. Consulte a divisão detalhada antes da apresentação final.
+A API cobre o núcleo obrigatório, com testes de domínio, persistência e HTTP. As telas Swing estão organizadas em uma janela única e o site tem layout responsivo; ambas consomem a mesma API. A conferência manual da janela em ambiente gráfico, os fluxos web com uma conta real e o QR com câmera física ainda precisam ser ensaiados pela equipe. Consulte a divisão detalhada antes da apresentação final.
 
 Políticas de inscrição ficam bloqueadas após a primeira inscrição; frequência após o primeiro registro; questionários são imutáveis após criação. Programação é montada em rascunho e bloqueada após publicação. Isso preserva o histórico com uma implementação simples. Correções manuais de frequência permanecem auditáveis. Relatórios refletem o estado atual; avaliações já enviadas permanecem registradas mesmo após correção posterior de presença.
 

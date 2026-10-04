@@ -89,3 +89,7 @@ A seleção de atividades agora permanece ao aplicar filtros; ao entrar, a agend
 ## Questionário no site — 04/10/2026
 
 O formulário agora destaca a política de identificação retornada pela API e informa, por pergunta, se a resposta é texto (até 4000 caracteres), escolha única ou escala (inteiro e limites inclusivos). Antes de enviar, valida respostas vazias, tipo, faixa e opção escolhida; a API continua aplicando as regras definitivas. A conferência interativa com questionário real e conta elegível ainda está pendente.
+
+## Painel desktop e revisão visual do site — 04/10/2026
+
+O desktop agora mantém os recursos administrativos em uma janela Swing, com lista de eventos e abas para gestão/regras, programação/presença, questionários/resultados, relatórios e alteração de papéis. A tela de papéis usa o endpoint administrativo existente; a API impede ações sem permissão e autoalteração. Login e cadastro também usam `TarefaTela`, fora da thread gráfica. `mvn -f desktop/pom.xml clean package` compilou com sucesso. O site recebeu navegação por seções, controles agrupados, foco visível por teclado e layout responsivo; o Chrome carregou o site servido pela API com banco demo isolado e as imagens renderizadas em 1365 px e 390 px foram conferidas. A suíte final da API passou com 75 testes. Ainda falta a conferência manual da janela Swing, login e fluxos de escrita com uma conta real, e QR com câmera física.

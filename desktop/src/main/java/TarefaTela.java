@@ -9,6 +9,11 @@ public final class TarefaTela {
     private TarefaTela() {}
 
     public static <T> void executar(Component pai, Callable<T> trabalho, Consumer<T> sucesso) {
+        executar(pai, trabalho, sucesso, () -> {});
+    }
+
+    public static <T> void executar(
+            Component pai, Callable<T> trabalho, Consumer<T> sucesso, Runnable conclusao) {
         new SwingWorker<T, Void>() {
             protected T doInBackground() throws Exception {
                 return trabalho.call();
@@ -24,6 +29,8 @@ public final class TarefaTela {
                             causa.getMessage(),
                             "Não foi possível concluir",
                             JOptionPane.ERROR_MESSAGE);
+                } finally {
+                    conclusao.run();
                 }
             }
         }.execute();
