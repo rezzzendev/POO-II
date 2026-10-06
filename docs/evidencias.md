@@ -10,7 +10,7 @@ Para S1–S8 o campo é “Observação do grupo”. Para 9–16 é “Link”, 
 
 ## 2 — S2: objetos, invariantes e persistência
 
-> Demonstração: [data/formato real]. Versão: [commit]. Evento e atividade são persistidos com JDBC/H2. Caminho válido: criar e consultar evento/atividade após nova conexão. Erro: período inválido ou conflito de local/horário. Testes: EventoTest, AtividadeTest e repositórios JDBC. Decisão: validações e comportamento no domínio; persistência implementa portas. Os testes atuais usam banco em memória separado da demonstração. Pendências/próxima meta: [registro real].
+> Demonstração: [data/formato real]. Versão: [commit]. Evento e atividade são persistidos com JDBC/PostgreSQL. Caminho válido: criar e consultar evento/atividade após nova conexão. Erro: período inválido ou conflito de local/horário. Testes: EventoTest, AtividadeTest e repositórios JDBC com H2 em memória. Decisão: validações e comportamento no domínio; persistência implementa portas. Os testes usam banco separado da demonstração. Pendências/próxima meta: [registro real].
 
 ## 3 — S3: casos de uso, portas e autenticação
 

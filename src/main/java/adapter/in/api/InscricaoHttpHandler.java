@@ -1,13 +1,9 @@
 package adapter.in.api;
 
-import application.atividade.AtividadeRepository;
-import application.evento.EventoRepository;
-import application.inscricao.InscricaoRepository;
+import application.inscricao.InscricaoService;
 
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 
-import domain.evento.Evento;
 import domain.inscricao.Inscricao;
 import domain.inscricao.InscricaoInvalidaException;
 import domain.usuario.Papel;
@@ -24,52 +20,21 @@ import java.util.List;
  * Contexto "/inscricoes". RF-10 a RF-15: inscrição sempre é feita pelo próprio usuário autenticado
  * (não dá pra inscrever outra pessoa).
  */
-public class InscricaoHttpHandler implements HttpHandler {
+public class InscricaoHttpHandler extends Endpoint {
 
     private static final Papel[] PODE_VER_INSCRITOS = {Papel.ORGANIZADOR, Papel.ADMINISTRADOR};
 
-    private final application.inscricao.InscricaoService service;
-    private final InscricaoRepository repository;
-    private final EventoRepository eventoRepository;
-    private final AtividadeRepository atividadeRepository;
+    private final InscricaoService service;
     private final Autenticador autenticador;
 
-    public InscricaoHttpHandler(
-            InscricaoRepository repository,
-            EventoRepository eventoRepository,
-            AtividadeRepository atividadeRepository,
-            Autenticador autenticador,
-            application.inscricao.InscricaoService service) {
+    public InscricaoHttpHandler(InscricaoService service, Autenticador autenticador) {
         this.service = service;
-        this.repository = repository;
-        this.eventoRepository = eventoRepository;
-        this.atividadeRepository = atividadeRepository;
         this.autenticador = autenticador;
     }
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
-        if (HttpJson.tratarPreflight(exchange)) {
-            return;
-        }
-
-        try {
-            rotear(exchange);
-        } catch (InscricaoInvalidaException e) {
-            HttpJson.responder(exchange, 400, HttpJson.erro(e.getMessage()));
-        } catch (NumberFormatException e) {
-            HttpJson.responder(exchange, 400, HttpJson.erro("Id precisa ser um número."));
-        } catch (NaoAutenticadoException e) {
-            HttpJson.responder(exchange, 401, HttpJson.erro(e.getMessage()));
-        } catch (NaoAutorizadoException e) {
-            HttpJson.responder(exchange, 403, HttpJson.erro(e.getMessage()));
-        } catch (IllegalArgumentException
-                | org.json.JSONException
-                | java.time.DateTimeException e) {
-            HttpJson.responder(exchange, 400, HttpJson.erro(e.getMessage()));
-        } catch (Exception e) {
-            HttpJson.falhaInterna(exchange, e);
-        }
+    protected void executar(HttpExchange exchange) throws IOException {
+        rotear(exchange);
     }
 
     private void rotear(HttpExchange exchange) throws IOException {
@@ -112,19 +77,12 @@ public class InscricaoHttpHandler implements HttpHandler {
         if (!corpo.has("eventoId")) {
             throw new InscricaoInvalidaException("eventoId é obrigatório.");
         }
-        long eventoId = corpo.getLong("eventoId");
-        Evento evento =
-                eventoRepository
-                        .buscarPorId(eventoId)
-                        .orElseThrow(
-                                () ->
-                                        new InscricaoInvalidaException(
-                                                "Evento " + eventoId + " não encontrado."));
-
         HttpJson.responder(
                 exchange,
                 201,
-                paraJson(service.inscrever(usuario, eventoId, lerAtividadeIds(corpo))));
+                paraJson(
+                        service.inscrever(
+                                usuario, corpo.getLong("eventoId"), lerAtividadeIds(corpo))));
     }
 
     private void redefinirAtividades(HttpExchange exchange, Long inscricaoId) throws IOException {
@@ -141,8 +99,7 @@ public class InscricaoHttpHandler implements HttpHandler {
     private void minhasInscricoes(HttpExchange exchange) throws IOException {
         Usuario usuario = autenticador.exigir(exchange);
         JSONArray json = new JSONArray();
-        repository
-                .listarPorUsuario(usuario.getId())
+        service.listarDoUsuario(usuario)
                 .forEach(inscricao -> json.put(paraJson(inscricao)));
         HttpJson.responder(exchange, 200, json);
     }
@@ -157,8 +114,7 @@ public class InscricaoHttpHandler implements HttpHandler {
             return;
         }
         JSONArray json = new JSONArray();
-        repository
-                .listarPorEvento(Long.valueOf(eventoIdTexto))
+        service.listarDoEvento(Long.parseLong(eventoIdTexto))
                 .forEach(inscricao -> json.put(paraJson(inscricao)));
         HttpJson.responder(exchange, 200, json);
     }
@@ -190,20 +146,6 @@ public class InscricaoHttpHandler implements HttpHandler {
         json.put("status", inscricao.getStatus().name());
         json.put("dataInscricao", inscricao.getDataInscricao().toString());
         return json;
-    }
-
-    private String parametro(HttpExchange exchange, String nome) {
-        String query = exchange.getRequestURI().getQuery();
-        if (query == null) {
-            return null;
-        }
-        for (String par : query.split("&")) {
-            String[] chaveValor = par.split("=", 2);
-            if (chaveValor.length == 2 && chaveValor[0].equals(nome)) {
-                return chaveValor[1];
-            }
-        }
-        return null;
     }
 
     private String[] caminho(HttpExchange exchange) {

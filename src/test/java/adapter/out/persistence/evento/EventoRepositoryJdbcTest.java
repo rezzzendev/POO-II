@@ -95,4 +95,5 @@ class EventoRepositoryJdbcTest {
 
         assertTrue(repository.buscarPorId(salvo.getId()).isEmpty());
     }
+
 }

@@ -14,7 +14,7 @@ def obter(rota,token=None,corpo=None):
     with urlopen(Request(a.base+rota,headers=headers,data=None if corpo is None else json.dumps(corpo).encode()),timeout=60) as r:
         return json.load(r)
 token=obter('/login',corpo={'email':'organizador@demo.local','senha':'Demo123!'})['token']
-e=next(e for e in obter('/eventos',token) if e['titulo']=='JAVA8 — Demonstração')
+e=next(e for e in obter('/eventos',token) if e['titulo']=='Simpósio JAVA8')
 for rota in ['/eventos',f"/atividades?eventoId={e['id']}",f"/relatorios/inscritos?eventoId={e['id']}",f"/relatorios/frequencia?eventoId={e['id']}"]:
     tempos=[]
     for _ in range(3):

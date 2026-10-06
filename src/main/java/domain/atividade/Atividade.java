@@ -40,19 +40,9 @@ public class Atividade {
             LocalDateTime fim,
             Integer capacidade,
             Evento evento) {
-        validarTextos(descricao, trilha);
-        validar(titulo, tipo, local, inicio, fim, capacidade, evento);
-
         this.id = id;
-        this.titulo = titulo;
-        this.descricao = descricao;
-        this.tipo = tipo;
-        this.trilha = trilha;
-        this.local = local;
-        this.inicio = inicio;
-        this.fim = fim;
-        this.capacidade = capacidade;
         this.evento = evento;
+        aplicarDados(titulo, descricao, tipo, trilha, local, inicio, fim, capacidade);
     }
 
     public static Atividade nova(
@@ -70,6 +60,18 @@ public class Atividade {
     }
 
     public void editar(
+            String titulo,
+            String descricao,
+            String tipo,
+            String trilha,
+            String local,
+            LocalDateTime inicio,
+            LocalDateTime fim,
+            Integer capacidade) {
+        aplicarDados(titulo, descricao, tipo, trilha, local, inicio, fim, capacidade);
+    }
+
+    private void aplicarDados(
             String titulo,
             String descricao,
             String tipo,

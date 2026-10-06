@@ -1,4 +1,6 @@
-package adapter.out.persistence;
+package adapter.out.persistence.frequencia;
+
+import adapter.out.persistence.Sql;
 
 import application.frequencia.FrequenciaRepository;
 
@@ -20,7 +22,11 @@ public class FrequenciaRepositoryJdbc implements FrequenciaRepository {
     }
 
     public void configurar(long id, String p) {
-        Sql.executar("MERGE INTO politicas_frequencia KEY(atividade_id) VALUES (?,?)", id, p);
+        if (Sql.atualizar(
+                        "UPDATE politicas_frequencia SET tipo=? WHERE atividade_id=?", p, id)
+                == 0)
+            Sql.executar(
+                    "INSERT INTO politicas_frequencia(atividade_id,tipo) VALUES (?,?)", id, p);
         Sql.executar("DELETE FROM codigos_frequencia WHERE atividade_id=?", id);
     }
 

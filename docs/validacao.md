@@ -31,7 +31,7 @@ Os cenários adicionais de conflito, vagas e expiração estão nos testes JUnit
 
 Chrome em modo headless acessou o site servido pela API local. Foi verificado nos formulários reais:
 
-- Login do participante demo e carregamento de 100 atividades.
+- Login do participante demo e carregamento da programação pública.
 - Exibição de questionário com texto, escolha e escala.
 - Mensagem de impedimento de avaliação sem presença.
 - Upload de arquivo PNG do QR, leitura e confirmação de presença.
@@ -39,20 +39,11 @@ Chrome em modo headless acessou o site servido pela API local. Foi verificado no
 
 O desktop foi compilado, mas não houve inspeção interativa de todas as janelas Swing. A tela de atividades agora inclui criação de questionários e consulta de resultados, ainda pendentes de conferência manual. A equipe também precisa revisar os fluxos e a usabilidade/responsividade do site. A S8 permanece uma entrega do grupo a validar.
 
-## Volume e medição local
+## Volume da base de demonstração
 
-Base fictícia: 503 usuários, dos quais 501 participantes; 100 atividades; 501 inscrições no evento demo. Duas cargas consecutivas em banco novo mantiveram 503 usuários, 100 atividades, 501 inscrições e um questionário, sem duplicação. Não são dados reais. O script do roteiro acrescentou outro evento e outro participante em sua própria demonstração.
+Base fictícia atual: 502 usuários, dos quais 500 participantes; 10 eventos; 100 atividades, distribuídas em 10 por evento; e 500 inscrições confirmadas no primeiro evento. A carga é idempotente e não duplica os registros ao reiniciar. Não são dados reais. O script do roteiro pode acrescentar outro evento e outro participante em sua própria demonstração.
 
-Resultado de `python3 scripts/medir-api.py --base http://localhost:18080`, três consultas sequenciais por rota:
-
-| Consulta | Registros | Mediana | Maior tempo |
-|---|---:|---:|---:|
-| Eventos publicados/administrativos | 2 | 2,5 ms | 3,1 ms |
-| Atividades do evento demo | 100 | 27,7 ms | 28,6 ms |
-| Relatório de inscritos | 501 | 205,5 ms | 249,7 ms |
-| Relatório de frequência | 501 | 288,8 ms | 393,6 ms |
-
-Medição local, com banco aquecido, na máquina desta sessão. Não é teste de carga concorrente nem garantia de latência em outro computador. A API usa um processo e tratamento sequencial de requisições para simplificar a consistência.
+O script `scripts/medir-api.py` permite repetir uma medição local. Os números registrados em versões anteriores foram removidos porque correspondiam ao seed antigo; eles não representam a base atual nem são uma garantia de latência em outro computador. A API usa um processo e tratamento sequencial de requisições para simplificar a consistência.
 
 ## Entrega e autoria
 
@@ -68,9 +59,9 @@ Após a validação anterior, `mvn test` e `mvn package` foram executados novame
 
 O cadastro agora rejeita e-mail fora do formato esperado e senha com menos de 8 caracteres ou sem letras e números. A API retorna mensagens específicas; o desktop exibe a resposta e usa uma mensagem padrão se a API enviar corpo vazio ou inesperado. `mvn test` passou com **76 testes**, incluindo os novos casos de validação; `mvn -f desktop/pom.xml package` compilou o cliente Swing. O formulário web também informa o critério da senha. A conferência interativa dos formulários ainda depende de abrir as telas em ambiente gráfico.
 
-## Leitura de QR pela câmera no site — 28/09/2026
+## Leitura de QR no site
 
-O site lê o QR pela câmera usando `BarcodeDetector` nativo em navegadores compatíveis e envia somente o token à API; o envio de imagem foi removido do site e da rota. O Chrome headless carregou a página e o módulo JavaScript. A leitura com uma câmera física ainda precisa ser conferida manualmente.
+O site usa `BarcodeDetector` em navegadores compatíveis e envia somente o token à API. A leitura é feita pela câmera física e exige `localhost` ou HTTPS. O teste automatizado decodifica o PNG gerado para conferir o conteúdo, mas a câmera ainda precisa ser conferida manualmente.
 
 ## Administração Swing — 04/10/2026
 
@@ -93,3 +84,31 @@ O formulário agora destaca a política de identificação retornada pela API e 
 ## Painel desktop e revisão visual do site — 04/10/2026
 
 O desktop agora mantém os recursos administrativos em uma janela Swing, com lista de eventos e abas para gestão/regras, programação/presença, questionários/resultados, relatórios e alteração de papéis. A tela de papéis usa o endpoint administrativo existente; a API impede ações sem permissão e autoalteração. Login e cadastro também usam `TarefaTela`, fora da thread gráfica. `mvn -f desktop/pom.xml clean package` compilou com sucesso. O site recebeu navegação por seções, controles agrupados, foco visível por teclado e layout responsivo; o Chrome carregou o site servido pela API com banco demo isolado e as imagens renderizadas em 1365 px e 390 px foram conferidas. A suíte final da API passou com 75 testes. Ainda falta a conferência manual da janela Swing, login e fluxos de escrita com uma conta real, e QR com câmera física.
+
+## Paridade funcional entre web e desktop — 06/10/2026
+
+O site passou a liberar uma área de gestão para ORGANIZADOR e ADMINISTRADOR. Ela cobre cadastro e transição de eventos, regras de inscrição, programação, vínculos de pessoas, política e lançamentos de frequência, geração e download de QR, questionários/resultados, relatórios/CSV e, para administrador, alteração de papéis. A autorização continua na API; a interface apenas apresenta os controles permitidos pelo perfil autenticado.
+
+## Separação final das interfaces — 06/10/2026
+
+A paridade visual anterior foi substituída pela divisão solicitada: administrador e organizador usam somente o desktop; visitante e participante usam o site. A gestão foi removida do HTML, JavaScript e cliente HTTP do web, mas os endpoints e casos de uso permanecem na API para o desktop. O site agora mostra uma seção por vez pela navbar, sem framework, e rejeita login de conta administrativa com orientação para abrir o desktop. O Swing recebeu a mesma paleta azul do site por uma classe de tema centralizada.
+
+`node --check` validou os dois arquivos JavaScript. A compilação Java não pôde ser repetida neste ambiente porque `JAVA_HOME` não está configurado; é necessário executar `mvn -f desktop/pom.xml test` após instalar/configurar o JDK 21.
+
+## Operações de conta por e-mail — 06/10/2026
+
+O desktop deixou de solicitar IDs internos nas duas operações que dependem de uma conta. O vínculo de palestrante/apresentador/responsável e a alteração de papel agora recebem o e-mail único da pessoa. A API resolve o e-mail para o ID internamente; a rota antiga por ID foi mantida somente para compatibilidade e não aparece na interface.
+
+## PostgreSQL e Docker Compose — 06/10/2026
+
+A execução de demonstração foi migrada de H2 em arquivo para PostgreSQL 17 em container. O Compose define banco com volume persistente e healthcheck, e a API depende do banco saudável antes de iniciar. O driver PostgreSQL passou a integrar o JAR; `ConnectionFactory` recebe URL, usuário e senha por propriedades. Os comandos `MERGE` específicos do H2 foram substituídos por atualização/inserção JDBC portável, e as identidades do esquema usam sintaxe aceita por PostgreSQL e H2. H2 permanece somente nos testes automatizados em memória.
+
+A configuração foi revisada estaticamente, mas o Docker não estava disponível no processo do agente para executar `docker compose config` ou o build. A validação final deve ser feita com `docker compose up --build -d`, seguida de `docker compose ps` e `docker compose logs servidor`.
+
+`web/app.js` e `web/api.js` passaram na verificação sintática do Node. A interface foi carregada com respostas locais controladas e conferida nos estados sem evento, com evento em rascunho e com atividade selecionada; não houve erro no console. Java e Maven não estavam disponíveis no ambiente desta revisão, então a suíte Java não foi repetida nesta data. Os fluxos de escrita completos e a câmera física ainda devem ser ensaiados após instalar o JDK 21 e o Maven.
+
+## Revisão contra a especificação e seed de 10 eventos — 06/10/2026
+
+Conferidos os RF-01 a RF-31 obrigatórios, os RNF, os ROO e os entregáveis da especificação. Não foi identificada funcionalidade obrigatória ausente no escopo de código/documentação. Certificados (RF-32 a RF-35) são desejáveis e a extensão social (RF-36) é opcional. A demonstração final pelas janelas Swing e a leitura por câmera física continuam como ensaios da equipe.
+
+O seed foi atualizado para 10 eventos, 500 participantes e 100 atividades, com 10 atividades por evento. `docker compose build servidor` concluiu; os containers foram iniciados e a API confirmou os 10 eventos e a distribuição 10 × 10. O README foi reescrito com instruções de Docker, abertura separada do desktop, contas demo, tecnologias e arquitetura. A cópia atual não inclui `.git`, então o histórico e as contribuições do repositório oficial precisam ser conferidos nele.

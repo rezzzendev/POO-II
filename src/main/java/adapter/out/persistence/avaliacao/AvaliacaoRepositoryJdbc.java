@@ -1,4 +1,7 @@
-package adapter.out.persistence;
+package adapter.out.persistence.avaliacao;
+
+import adapter.out.persistence.ConnectionFactory;
+import adapter.out.persistence.Sql;
 
 import application.avaliacao.AvaliacaoRepository;
 

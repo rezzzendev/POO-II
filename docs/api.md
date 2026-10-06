@@ -12,7 +12,8 @@ Respostas: 200 para consultas/alterações, 201 para criações, 204 para remoç
 | POST `/login` | `{email,senha}` → `{id,nome,email,papel,token}` | Público |
 | GET `/usuarios/me` | Perfil autenticado, sem hash | Autenticado |
 | PUT `/usuarios/me` | `{nome,email}` → perfil persistido | Próprio usuário |
-| PUT `/usuarios/{id}/papel` | `{papel:"ORGANIZADOR"}`; também PARTICIPANTE ou ADMINISTRADOR | Administrador, outro usuário |
+| PUT `/usuarios/papel` | `{email:"pessoa@exemplo.com",papel:"ORGANIZADOR"}`; também PARTICIPANTE ou ADMINISTRADOR | Administrador, outra conta |
+| PUT `/usuarios/{id}/papel` | Forma compatível por ID, mantida apenas para integrações existentes | Administrador, outro usuário |
 
 No cadastro, o e-mail deve ter formato `nome@dominio.extensão`; espaços externos são removidos e o endereço é normalizado para minúsculas. E-mail duplicado é rejeitado. A senha deve ter pelo menos 8 caracteres e conter letras e números. Erros de validação retornam HTTP 400 com a mensagem em `erro`. Senhas usam PBKDF2 com sal e nunca são devolvidas. Sessões ficam na memória do processo; reinício exige login novamente.
 
@@ -23,16 +24,16 @@ No cadastro, o e-mail deve ter formato `nome@dominio.extensão`; espaços extern
 | GET `/eventos` / `/eventos/{id}` | Listar / consultar | Público, respeitando estado |
 | POST `/eventos` | Criar rascunho | Organização |
 | PUT `/eventos/{id}` | Editar rascunho | Organização |
+| DELETE `/eventos/{id}` | Remover somente rascunho | Organização |
 | POST `/eventos/{id}/publicar` | Publicar; corpo `{}` | Organização |
 | POST `/eventos/{id}/encerrar` | Encerrar publicado; corpo `{}` | Organização |
-| DELETE `/eventos/{id}` | Remover somente rascunho | Organização |
-| GET `/atividades` | Filtros combináveis: eventoId, data, trilha, tipo, local | Público, respeitando estado |
+| GET `/atividades` | Filtros combináveis: eventoId, data, trilha, tipo, local; paginação opcional com `pagina` e `tamanho` | Público, respeitando estado |
 | GET `/atividades/{id}` | Consultar | Público, respeitando estado |
 | POST `/atividades` | Criar em evento rascunho | Organização |
 | PUT `/atividades/{id}` | Editar em rascunho; todos os campos | Organização |
 | DELETE `/atividades/{id}` | Remover em rascunho | Organização |
 | GET `/atividades/{id}/pessoas` | Lista `{usuarioId,nomePessoa,papel}` | Público, respeitando estado |
-| POST `/atividades/{id}/pessoas` | `{usuarioId,papel:"Palestrante"}` | Organização |
+| POST `/atividades/{id}/pessoas` | `{email:"pessoa@exemplo.com",papel:"PALESTRANTE"}` | Organização |
 
 Corpo de evento:
 
@@ -51,6 +52,8 @@ Corpo de atividade:
 Tipo é texto livre. Capacidade omitida/nula significa ilimitada. Programação é montada antes da publicação; conflito de local/horário no mesmo evento é bloqueado. Horários adjacentes não conflitam. Fotografia não é exigida. Pessoas vinculadas usam contas existentes; o ID vem de cadastro ou relatório.
 
 Exemplo de filtros: `/atividades?eventoId=1&data=2026-10-01&trilha=Programa%C3%A7%C3%A3o&tipo=Oficina`.
+
+Para paginar, informe os dois parâmetros, por exemplo `/atividades?eventoId=1&pagina=1&tamanho=10`. A resposta passa a ser `{itens,pagina,tamanho,total,totalPaginas}`. Sem esses parâmetros, a rota continua retornando a lista JSON simples usada pelo desktop.
 
 ## Regras, inscrição e agenda
 
@@ -85,7 +88,7 @@ Padrão: escolha habilitada, vagas habilitadas, prazo no início do evento. Com 
 
 Gerar código retorna `{token,validade,imagemBase64}`. Imagem é PNG de 300×300; validade em UTC. O desktop mostra ou salva o PNG. O site lê o QR pela câmera e envia somente o token à API; a imagem não é enviada.
 
-QR contém somente token opaco. Válido por cinco minutos; não revela senha ou dados pessoais. O mesmo código pode ser usado pelos participantes da atividade durante esse prazo, mas repetir uma marcação para a mesma pessoa é rejeitado. Saída exige entrada anterior. O site lê pela câmera em navegadores compatíveis e envia somente o token. Não há imposição de janela do horário da atividade além da validade do código emitido pelo organizador; essa simplificação permite demonstração controlada.
+QR contém somente token opaco. Válido por cinco minutos; não revela senha ou dados pessoais. O mesmo código pode ser usado pelos participantes da atividade durante esse prazo, mas repetir uma marcação para a mesma pessoa é rejeitado. Saída exige entrada anterior. A câmera exige navegador compatível em `localhost` ou HTTPS. Não há imposição de janela do horário da atividade além da validade do código emitido pelo organizador; essa simplificação permite demonstração controlada.
 
 Histórico retorna `{id,tipo,origem,responsavelId,instante,justificativa}`. A última correção manual determina a situação, sem remover registros anteriores. `presente:false` registra invalidação manual, não exclusão. Frequência manual e QR exigem inscrição válida.
 

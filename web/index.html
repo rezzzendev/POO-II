@@ -4,22 +4,24 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#173b57">
-  <title>Gestão de Eventos — JAVA8</title>
+  <title>Área do participante — JAVA8</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <a class="pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
   <header class="cabecalho">
     <div class="largura-cabecalho">
-      <p class="marca">JAVA8 <span>· POO II</span></p>
-      <h1>Gestão de Eventos</h1>
-      <p class="subtitulo">Encontre uma atividade, organize sua participação e acompanhe sua agenda.</p>
-      <nav aria-label="Navegação da página">
-        <a href="#conta">Conta</a>
-        <a href="#programacao">Programação</a>
-        <a href="#minha-agenda">Minha agenda</a>
-        <a href="#presenca">Presença</a>
-        <a href="#avaliacao">Avaliação</a>
+      <div class="identidade">
+        <p class="marca">JAVA8 <span>POO II</span></p>
+        <h1>Área do participante</h1>
+        <p class="subtitulo">Encontre eventos, monte sua agenda e registre sua participação.</p>
+      </div>
+      <nav aria-label="Páginas do site">
+        <a href="#programacao" data-pagina="programacao">Programação</a>
+        <a href="#minha-agenda" data-pagina="minha-agenda">Minha agenda</a>
+        <a href="#presenca" data-pagina="presenca">Presença</a>
+        <a href="#avaliacao" data-pagina="avaliacao">Avaliação</a>
+        <a href="#conta" data-pagina="conta">Conta</a>
       </nav>
     </div>
   </header>
@@ -27,44 +29,8 @@
   <main id="conteudo" class="conteudo">
     <p id="mensagem" role="status" aria-live="polite"></p>
 
-    <section id="conta" class="cartao">
-      <div class="titulo-secao">
-        <div><p class="sobretitulo">ACESSO</p><h2>Sua conta</h2></div>
-        <p id="usuario" class="estado-conta">Visitante</p>
-      </div>
-      <div class="colunas-conta">
-        <form id="login" class="formulario">
-          <h3>Entrar</h3>
-          <label>E-mail <input name="email" type="email" required autocomplete="username"></label>
-          <label>Senha <input name="senha" type="password" required autocomplete="current-password"></label>
-          <button>Entrar</button>
-        </form>
-        <details id="cadastro-container" class="cadastro">
-          <summary>Criar uma conta</summary>
-          <form id="cadastro" class="formulario">
-            <label>Nome <input name="nome" required maxlength="255" autocomplete="name"></label>
-            <label>E-mail <input name="email" type="email" required autocomplete="email"></label>
-            <label>Senha <input name="senha" type="password" required minlength="8" pattern="(?=.*[A-Za-z])(?=.*[0-9]).{8,}" title="Use pelo menos 8 caracteres, com letras e números." autocomplete="new-password"></label>
-            <small>A senha precisa ter pelo menos 8 caracteres, com letras e números.</small>
-            <button>Cadastrar</button>
-          </form>
-        </details>
-      </div>
-      <button id="sair" class="botao-secundario" type="button" hidden disabled>Sair da conta</button>
-    </section>
-
-    <section id="perfil-section" class="cartao" hidden>
-      <div class="titulo-secao"><div><p class="sobretitulo">DADOS DA CONTA</p><h2>Meu perfil</h2></div></div>
-      <p>Atualize seu nome e e-mail. A troca de senha não está disponível nesta versão.</p>
-      <form id="perfil-form" class="formulario formulario-linha">
-        <label>Nome <input name="nome" required maxlength="255" autocomplete="name"></label>
-        <label>E-mail <input name="email" type="email" required autocomplete="email"></label>
-        <button>Salvar perfil</button>
-      </form>
-    </section>
-
-    <section id="programacao" class="cartao">
-      <div class="titulo-secao"><div><p class="sobretitulo">DESCUBRA</p><h2>Eventos e programação</h2></div></div>
+    <section id="programacao" class="cartao pagina" data-pagina-conteudo>
+      <div class="titulo-secao"><div><p class="sobretitulo">Eventos disponíveis</p><h2>Programação</h2></div></div>
       <label class="seletor-evento">Evento <select id="eventos"><option value="">Selecione um evento</option></select></label>
       <p id="evento-descricao" class="descricao-evento"></p>
       <form id="filtros" class="filtros">
@@ -77,33 +43,75 @@
       <p id="regras" class="texto-apoio"></p>
       <p id="selecao-resumo" class="aviso-selecao" aria-live="polite"></p>
       <div id="atividades" class="lista-atividades" aria-live="polite"></div>
+      <div id="programacao-paginacao" class="paginacao" hidden>
+        <button id="pagina-anterior" class="botao-secundario" type="button">Anterior</button>
+        <span id="pagina-informacao" aria-live="polite"></span>
+        <button id="pagina-proxima" class="botao-secundario" type="button">Próxima</button>
+      </div>
       <button id="inscrever" type="button" hidden disabled>Inscrever-me neste evento</button>
     </section>
 
-    <section id="minha-agenda" class="cartao">
+    <section id="minha-agenda" class="cartao pagina" data-pagina-conteudo hidden>
       <div class="titulo-secao">
-        <div><p class="sobretitulo">PARTICIPAÇÃO</p><h2>Minhas inscrições e agenda</h2></div>
+        <div><p class="sobretitulo">Sua participação</p><h2>Minhas inscrições e agenda</h2></div>
         <button id="atualizar-agenda" class="botao-secundario" type="button" disabled>Atualizar</button>
       </div>
       <div id="inscricoes" class="lista-inscricoes"></div>
       <ul id="agenda" class="lista-agenda"></ul>
     </section>
 
-    <section id="presenca" class="cartao cartao-presenca">
-      <div><p class="sobretitulo">NO DIA DO EVENTO</p><h2>Registrar presença</h2></div>
-      <p>Entre na conta inscrita e aponte a câmera para o QR Code da atividade. É necessário permitir acesso à câmera em um navegador compatível.</p>
+    <section id="presenca" class="cartao pagina cartao-presenca" data-pagina-conteudo hidden>
+      <div><p class="sobretitulo">No dia do evento</p><h2>Registrar presença</h2></div>
+      <p>Entre na conta inscrita e aponte a câmera para o QR Code da atividade. É necessário permitir acesso à câmera.</p>
       <button id="abrir-camera" type="button" disabled>Ler QR Code com a câmera</button>
       <button id="fechar-camera" class="botao-secundario" type="button" hidden>Fechar câmera</button>
       <video id="camera-qr" playsinline muted hidden aria-label="Visualização da câmera para leitura do QR Code"></video>
     </section>
 
-    <section id="avaliacao" class="cartao">
-      <div class="titulo-secao"><div><p class="sobretitulo">SUA OPINIÃO</p><h2>Avaliar uma atividade</h2></div></div>
+    <section id="avaliacao" class="cartao pagina" data-pagina-conteudo hidden>
+      <div class="titulo-secao"><div><p class="sobretitulo">Sua opinião</p><h2>Avaliar uma atividade</h2></div></div>
+      <p class="texto-apoio">A avaliação é liberada para participantes inscritos com presença confirmada.</p>
       <label class="seletor-evento">Atividade <select id="atividade-avaliacao" disabled><option value="">Selecione uma atividade na programação</option></select></label>
       <div id="questionarios"></div>
     </section>
+
+    <section id="conta" class="cartao pagina" data-pagina-conteudo hidden>
+      <div class="titulo-secao">
+        <div><p class="sobretitulo">Acesso</p><h2>Sua conta</h2></div>
+        <p id="usuario" class="estado-conta">Visitante</p>
+      </div>
+      <div class="colunas-conta">
+        <form id="login" class="formulario">
+          <h3>Entrar</h3>
+          <label>E-mail <input name="email" type="email" required autocomplete="username"></label>
+          <label>Senha <input name="senha" type="password" required autocomplete="current-password"></label>
+          <button>Entrar</button>
+        </form>
+        <div id="cadastro-container" class="cadastro">
+          <h3>Criar uma conta</h3>
+          <form id="cadastro" class="formulario formulario-cadastro">
+            <label>Nome <input name="nome" required maxlength="255" autocomplete="name"></label>
+            <label>E-mail <input name="email" type="email" required autocomplete="email"></label>
+            <label>Senha <input name="senha" type="password" required minlength="8" pattern="(?=.*[A-Za-z])(?=.*[0-9]).{8,}" title="Use pelo menos 8 caracteres, com letras e números." autocomplete="new-password"></label>
+            <small>Use pelo menos 8 caracteres, com letras e números.</small>
+            <button>Cadastrar</button>
+          </form>
+        </div>
+      </div>
+      <button id="sair" class="botao-secundario" type="button" hidden disabled>Sair da conta</button>
+
+      <div id="perfil-section" class="perfil" hidden>
+        <h3>Meu perfil</h3>
+        <form id="perfil-form" class="formulario formulario-linha">
+          <label>Nome <input name="nome" required maxlength="255" autocomplete="name"></label>
+          <label>E-mail <input name="email" type="email" required autocomplete="email"></label>
+          <button>Salvar perfil</button>
+        </form>
+      </div>
+    </section>
   </main>
-  <footer><span>JAVA8</span> · Plataforma de Gestão de Eventos · POO II</footer>
+
+  <footer><span>JAVA8</span> · Participante no site · Gestão no desktop</footer>
   <script type="module" src="app.js"></script>
 </body>
 </html>

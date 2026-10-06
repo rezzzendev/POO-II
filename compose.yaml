@@ -1,0 +1,37 @@
+services:
+  banco:
+    image: postgres:17-alpine
+    container_name: poo2-postgres
+    environment:
+      POSTGRES_DB: eventos
+      POSTGRES_USER: eventos
+      POSTGRES_PASSWORD: eventos
+    volumes:
+      - postgres_dados:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eventos -d eventos"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  servidor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: poo2-servidor
+    depends_on:
+      banco:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      JAVA_TOOL_OPTIONS: >-
+        -Dapi.host=0.0.0.0
+        -Ddb.url=jdbc:postgresql://banco:5432/eventos
+        -Ddb.user=eventos
+        -Ddb.password=eventos
+    restart: unless-stopped
+
+volumes:
+  postgres_dados:

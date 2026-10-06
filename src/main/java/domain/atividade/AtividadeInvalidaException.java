@@ -1,6 +1,8 @@
 package domain.atividade;
 
-public class AtividadeInvalidaException extends RuntimeException {
+import domain.RegraViolada;
+
+public class AtividadeInvalidaException extends RegraViolada {
 
     public AtividadeInvalidaException(String mensagem) {
         super(mensagem);

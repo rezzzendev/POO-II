@@ -32,6 +32,12 @@ public class EventoApiClient {
         return papelLogado;
     }
 
+    public void sair() {
+        token = null;
+        usuarioLogado = null;
+        papelLogado = null;
+    }
+
     public void login(String email, String senha) throws IOException, InterruptedException {
         JSONObject corpo = new JSONObject().put("email", email).put("senha", senha);
         HttpResponse<String> resposta =
@@ -44,16 +50,6 @@ public class EventoApiClient {
         this.token = json.getString("token");
         this.papelLogado = json.getString("papel");
         this.usuarioLogado = json.getString("nome") + " (" + papelLogado + ")";
-    }
-
-    public void cadastrar(String nome, String email, String senha)
-            throws IOException, InterruptedException {
-        JSONObject corpo =
-                new JSONObject().put("nome", nome).put("email", email).put("senha", senha);
-        enviarSemAutenticar(
-                HttpRequest.newBuilder(URI.create(RAIZ + "/usuarios"))
-                        .header("Content-Type", "application/json")
-                        .POST(HttpRequest.BodyPublishers.ofString(corpo.toString())));
     }
 
     public List<JSONObject> listar() throws IOException, InterruptedException {
@@ -78,8 +74,8 @@ public class EventoApiClient {
         return new JSONObject(requisicao("PUT", "/eventos/" + id, corpo));
     }
 
-    public void remover(long id) throws IOException, InterruptedException {
-        enviarAutenticado(HttpRequest.newBuilder(URI.create(EVENTOS_URL + "/" + id)).DELETE());
+    public void removerEvento(long id) throws IOException, InterruptedException {
+        requisicao("DELETE", "/eventos/" + id, null);
     }
 
     /** Métodos reutilizáveis para as próximas telas; nunca acessam o banco. */
@@ -117,13 +113,22 @@ public class EventoApiClient {
         return new JSONArray(requisicao("GET", "/atividades/" + atividadeId + "/pessoas", null));
     }
 
-    public JSONObject vincularPessoa(long atividadeId, long usuarioId, String papel)
+    public JSONObject vincularPessoa(long atividadeId, String email, String papel)
             throws IOException, InterruptedException {
         return new JSONObject(
                 requisicao(
                         "POST",
                         "/atividades/" + atividadeId + "/pessoas",
-                        new JSONObject().put("usuarioId", usuarioId).put("papel", papel)));
+                        new JSONObject().put("email", email).put("papel", papel)));
+    }
+
+    public JSONObject alterarPapel(String email, String papel)
+            throws IOException, InterruptedException {
+        return new JSONObject(
+                requisicao(
+                        "PUT",
+                        "/usuarios/papel",
+                        new JSONObject().put("email", email).put("papel", papel)));
     }
 
     public JSONObject regrasInscricao(long eventoId) throws IOException, InterruptedException {
@@ -152,6 +157,13 @@ public class EventoApiClient {
                         new JSONObject().put("tipo", tipo)));
     }
 
+    public String politicaFrequencia(long atividadeId)
+            throws IOException, InterruptedException {
+        return new JSONObject(
+                        requisicao("GET", "/frequencia/" + atividadeId + "/politica", null))
+                .getString("politica");
+    }
+
     public void registrarManual(
             long atividadeId, long usuarioId, boolean presente, String justificativa)
             throws IOException, InterruptedException {
@@ -178,14 +190,6 @@ public class EventoApiClient {
             throws IOException, InterruptedException {
         return new JSONObject(
                 requisicao("GET", "/questionarios/" + questionarioId + "/resultados", null));
-    }
-
-    public String relatorio(long eventoId, String tipo, boolean csv)
-            throws IOException, InterruptedException {
-        return requisicao(
-                "GET",
-                "/relatorios/" + tipo + "?eventoId=" + eventoId + (csv ? "&formato=csv" : ""),
-                null);
     }
 
     private HttpResponse<String> enviarAutenticado(HttpRequest.Builder requisicao)

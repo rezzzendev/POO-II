@@ -11,34 +11,34 @@ Legenda: **M** obrigatório, **D** desejável, **P** opcional. Fontes: especific
 | 01 Cadastro | M | Usuario, UsuarioService, UsuarioRepositoryJdbc | UsuarioServiceTest, UsuarioTest, ApiIntegracaoTest | API e site; cadastro desktop existente |
 | 02 Login/permissões | M | UsuarioService, Autenticador, SessaoStore, UsuarioHttpHandler | ApiIntegracaoTest.autorizacaoRascunhoEMalformedJson; painel chama PUT de papel | API e desktop; a API autoriza alterações de papel |
 | 03 Perfil | M | Usuario.editarPerfil, UsuarioService, web/api.js e web/app.js | UsuarioServiceTest; fluxo de tela ainda precisa de conferência manual | API e site; edição autenticada de nome/e-mail |
-| 04 Eventos | M | Evento, EventoHttpHandler, EventoRepositoryJdbc | EventoTest, EventoRepositoryJdbcTest, roteiro CA-01 | API; desktop cria/edita rascunho com local e fuso; validação visual manual pendente |
-| 05 Tipos abertos | M | Atividade, ProgramacaoService | AtividadeTest; criação no roteiro | API e base desktop |
+| 04 Eventos | M | Evento, EventoHttpHandler, EventoRepositoryJdbc | EventoTest, EventoRepositoryJdbcTest, roteiro CA-01 | API; desktop cria/edita rascunho com local e fuso |
+| 05 Tipos abertos | M | Atividade, AtividadeService | AtividadeTest; criação no roteiro | API e base desktop |
 | 06 Trilhas/espaços | M | AtividadeRepository.buscar | AtividadeRepositoryJdbcTest; filtros no site | API e site |
-| 07 Conflito programação | M | Atividade.conflitaCom, ProgramacaoService | AtividadeTest; erro de conflito antes de publicar | API; validar tela final |
-| 08 Pessoas vinculadas | M | VinculoPessoa, AtividadeRepositoryJdbc | AtividadeRepositoryJdbcTest; seed com palestrante | API, exibição web e vínculo pelo desktop usando ID de conta; validação visual manual pendente |
+| 07 Conflito programação | M | Atividade.conflitaCom, AtividadeService | AtividadeTest; erro de conflito antes de publicar | API; validar tela final |
+| 08 Pessoas vinculadas | M | VinculoPessoa, AtividadeRepositoryJdbc | AtividadeRepositoryJdbcTest; seed com palestrante | API; exibição pública no web e vínculo por ID no desktop |
 | 09 Filtros combináveis | M | AtividadeRepository.buscar, AtividadeHttpHandler | AtividadeRepositoryJdbcTest; data/trilha/tipo/local no site | API e site |
 | 10 Página pública | M | SiteHttpHandler, web | ApiIntegracaoTest; computador e celular pendentes de conferência manual | Site responsivo; integração manual pendente |
 | 11 Programação/pessoas | M | web/app.js, /atividades e /pessoas | Seed e navegador; foto não exigida | Base funcional |
 | 12 Inscrição pelo site | M | web/Api.inscrever, InscricaoService | ApiIntegracaoTest; seleção preservada e confirmação bloqueada sem sessão | Site funcional; revisão interativa pendente |
-| 13 Configurar inscrição | M | RegrasInscricao, InscricaoService.configurar | ApiIntegracaoTest.inscricaoSomenteEventoEFrequenciaManual | API e editor desktop; API bloqueia alteração após a primeira inscrição |
+| 13 Configurar inscrição | M | RegrasInscricao, InscricaoService.configurar | ApiIntegracaoTest.inscricaoSomenteEventoEFrequenciaManual | Editor desktop; API bloqueia alteração após a primeira inscrição |
 | 14 Vagas | M | Atividade.temVagaDisponivel, InscricaoService | Teste HTTP da última vaga concorrente | API |
 | 15 Cancelamento | M | RegrasInscricao, Inscricao.cancelar | ApiIntegracaoTest.cancelamentoNoPrazoLiberaVaga | API e site; prazo e recusas exibidos |
 | 16 Seleção | M | InscricaoService.selecionar | InscricaoTest, ApiIntegracaoTest | API e site; seleção recuperada e mantida ao filtrar |
 | 17 Agenda cronológica | M | AgendaHttpHandler | ApiIntegracaoTest; script CA-03 | API e site; datas exibidas com fuso retornado |
 | 18 Conflito agenda | M | InscricaoService.validar | ApiIntegracaoTest.vagasConflitoVinculoCancelamentoEAtomicidade | API; mensagem de erro é mostrada pelo cliente |
-| 19 Política frequência | M | PoliticaFrequencia e três implementações | FrequenciaTest | API e desktop |
-| 20 Gerar QR | M | CodigoFrequencia, QrCode, FrequenciaService | Fluxo HTTP e script geram PNG real | API e desktop |
-| 21 Ler QR | M | BarcodeDetector no navegador, FrequenciaService.registrarQr | ApiIntegracaoTest valida token e rejeita pedido sem token; leitura física da câmera pendente | API e site; leitura exige sessão |
+| 19 Política frequência | M | PoliticaFrequencia e três implementações | FrequenciaTest | API e configuração no desktop |
+| 20 Gerar QR | M | CodigoFrequencia, QrCode, FrequenciaService | Fluxo HTTP e script geram PNG real | Desktop gera; web lê com a câmera; API valida |
+| 21 Ler QR | M | BarcodeDetector no navegador, FrequenciaService.registrarQr | QrCodeTest decodifica 100 PNGs; ApiIntegracaoTest valida token, expiração e duplicidade; câmera física pendente | API e site; câmera exige sessão |
 | 22 Lançamento manual | M | RegistroFrequencia, FrequenciaService.manual | Teste de correções com autoria/histórico | API e desktop |
 | 23 Calcular presença | M | Frequencia + Strategy | FrequenciaTest: check-in, entrada/saída, manual | API |
 | 24 Questionário | M | Questionario, AvaliacaoService, AvaliacaoRepositoryJdbc | QuestionarioTest, ApiIntegracaoTest | API; criação e resultados na aba Swing, validação visual pendente |
 | 25 Tipos de resposta | M | Pergunta, Texto, EscolhaUnica, Escala | QuestionarioTest; persistência HTTP dos três tipos | API; site explica e valida os limites retornados |
 | 26 Elegibilidade | M | AvaliacaoService, FrequenciaService | Bloqueio sem presença no HTTP e navegador | API bloqueia inelegível; cliente mostra mensagem |
 | 27 Duplicidade avaliação | M | Restrição UNIQUE de avaliacoes | APIIntegracaoTest e restrição UNIQUE; cliente bloqueia reenvio após sucesso | API e site |
-| 28 Consolidação | M | AvaliacaoService.resumo / AvaliacaoHttpHandler | Script e teste HTTP, média/distribuição/comentário | API e consulta pelo desktop; conferência visual manual pendente |
-| 29 Relatório inscritos | M | RelatorioService.inscritos | ApiIntegracaoTest; seed de 501 inscritos | API e consulta/exportação CSV pelo desktop; conferência visual manual pendente |
-| 30 Frequência/participação | M | RelatorioService.frequencia, histórico de frequência | Script CA-07 e teste HTTP | API e consulta/exportação CSV pelo desktop; conferência visual manual pendente |
-| 31 Exportação | M | RelatorioHttpHandler | Script salva CSV fora do sistema | API e exportação de inscritos/frequência pelo desktop; conferência visual manual pendente |
+| 28 Consolidação | M | AvaliacaoService.resumo / AvaliacaoHttpHandler | Script e teste HTTP, média/distribuição/comentário | API e consulta no desktop; participante responde no web |
+| 29 Relatório inscritos | M | RelatorioService.inscritos | ApiIntegracaoTest; seed de 500 inscritos | API e consulta/exportação no desktop |
+| 30 Frequência/participação | M | RelatorioService.frequencia, histórico de frequência | Script CA-07 e teste HTTP | API e consulta/exportação no desktop |
+| 31 Exportação | M | RelatorioHttpHandler | Script salva CSV fora do sistema | API e exportação de inscritos/frequência no desktop |
 | 32 Elegibilidade certificado | D | Fora do recorte desta entrega | Não testado | Não implementado |
 | 33 Certificado PDF | D | Fora do recorte desta entrega | Não testado | Não implementado |
 | 34 Envio por e-mail | D | Fora do recorte desta entrega | Não testado | Não implementado |

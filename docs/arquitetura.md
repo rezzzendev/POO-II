@@ -28,11 +28,13 @@ flowchart LR
   Casos --> Dominio[Objetos e regras de domínio]
   Casos --> Portas[Interfaces de repositório]
   JDBC[Adaptadores JDBC] -. implementam .-> Portas
-  JDBC --> H2[(H2 relacional)]
+  JDBC --> PostgreSQL[(PostgreSQL)]
   API --> QR[Adaptador ZXing]
 ```
 
-`ServidorApi` constrói as dependências explicitamente. Não existe contêiner de injeção. Domínio e aplicação não importam HTTP, Swing, JDBC ou JSON. Handlers traduzem entradas e saídas; operações simples de eventos/perfil ainda podem coordenar chamadas curtas, sem uma classe por endpoint. Casos de uso com regras entre agregados ficam em `application`.
+`ServidorApi` constrói as dependências explicitamente. Não existe contêiner de injeção. Domínio e aplicação não importam HTTP, Swing, JDBC ou JSON. Todos os handlers reutilizam `Endpoint` para o tratamento HTTP comum e traduzem apenas entradas e saídas. Casos de uso e regras que combinam entidades ou repositórios ficam nos services de `application`.
+
+As interfaces são divididas por público, não por regras: o **desktop Swing** atende administrador e organizador; o **site** atende visitante e participante. A **API** é a única entrada para regras de negócio, permissões e persistência. Assim, as telas podem ser diferentes sem duplicar validações ou acessar o banco diretamente.
 
 ```mermaid
 classDiagram
@@ -57,6 +59,8 @@ A relação inscrição/atividade é uma seleção persistida por IDs. A agenda 
 ## Persistência e consistência
 
 `src/main/resources/db/001-inicial.sql` cria a base original; `002-politicas.sql` acrescenta configurações, frequência e avaliação. São scripts idempotentes aditivos. `ConnectionFactory` os aplica na primeira conexão de cada URL de banco no processo. Não é um sistema genérico de migração com checksum; futuras alterações devem manter a compatibilidade e ganhar novo script explícito.
+
+Na execução normal, PostgreSQL e API são serviços separados no Docker Compose e os dados ficam em volume nomeado. H2 permanece somente no escopo de testes automatizados; o SQL compartilhado evita manter dois esquemas diferentes.
 
 Inscrição e escolhas são gravadas em transação; questionário e perguntas/opções também; avaliação e respostas também. `UNIQUE(questionario_id, usuario_id)` impede avaliações duplicadas. Requisições da API são executadas sequencialmente em um processo, e o caso de uso de inscrição também serializa reserva/alteração de vagas. Esta solução não oferece coordenação entre múltiplas instâncias da API — fora do recorte da demonstração local.
 

@@ -25,7 +25,12 @@ export class Api {
   perfil() { return this.enviar('/usuarios/me'); }
   editarPerfil(nome, email) { return this.enviar('/usuarios/me', 'PUT', {nome, email}); }
   eventos() { return this.enviar('/eventos'); }
-  atividades(eventoId, filtros = {}) { return this.enviar('/atividades?' + new URLSearchParams({eventoId, ...filtros})); }
+  atividades(eventoId, filtros = {}, pagina, tamanho) {
+    const parametros = {eventoId, ...filtros};
+    if (pagina !== undefined) parametros.pagina = pagina;
+    if (tamanho !== undefined) parametros.tamanho = tamanho;
+    return this.enviar('/atividades?' + new URLSearchParams(parametros));
+  }
   regrasInscricao(eventoId) { return this.enviar(`/regras-inscricao/${eventoId}`); }
   pessoas(atividadeId) { return this.enviar(`/atividades/${atividadeId}/pessoas`); }
   inscrever(eventoId, atividadeIds) { return this.enviar('/inscricoes', 'POST', {eventoId, atividadeIds}); }

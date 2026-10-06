@@ -23,10 +23,9 @@ public final class TarefaTela {
                 try {
                     sucesso.accept(get());
                 } catch (Exception e) {
-                    Throwable causa = e.getCause() == null ? e : e.getCause();
                     JOptionPane.showMessageDialog(
                             pai,
-                            causa.getMessage(),
+                            mensagem(e),
                             "Não foi possível concluir",
                             JOptionPane.ERROR_MESSAGE);
                 } finally {
@@ -34,5 +33,20 @@ public final class TarefaTela {
                 }
             }
         }.execute();
+    }
+
+    private static String mensagem(Throwable erro) {
+        Throwable atual = erro;
+        String encontrada = null;
+        while (atual != null) {
+            if (atual instanceof java.net.ConnectException) {
+                return "A API não está ligada. Inicie o servidor em http://localhost:8080.";
+            }
+            if (atual.getMessage() != null && !atual.getMessage().isBlank()) {
+                encontrada = atual.getMessage();
+            }
+            atual = atual.getCause();
+        }
+        return encontrada == null ? "Ocorreu um erro inesperado." : encontrada;
     }
 }

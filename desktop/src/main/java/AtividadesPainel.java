@@ -6,7 +6,7 @@ import java.util.Base64;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
-/** Painel de programação e frequência embutido na janela principal. */
+/** Programação e frequência da atividade selecionada. */
 public class AtividadesPainel extends JPanel {
     private final EventoApiClient api;
     private JSONObject evento;
@@ -22,20 +22,33 @@ public class AtividadesPainel extends JPanel {
     private final JTable tabela = new JTable(modelo);
 
     public AtividadesPainel(EventoApiClient api) {
-        super(new BorderLayout());
+        super(new BorderLayout(8, 8));
         this.api = api;
-        add(contexto, BorderLayout.NORTH);
+
+        JPanel topo = new JPanel(new BorderLayout(8, 4));
+        topo.add(contexto, BorderLayout.CENTER);
+        JPanel programacao = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
+        botao(programacao, "Nova atividade", this::nova);
+        botao(programacao, "Editar atividade", this::editar);
+        botao(programacao, "Excluir atividade", this::remover);
+        topo.add(programacao, BorderLayout.EAST);
+        add(topo, BorderLayout.NORTH);
+
         add(new JScrollPane(tabela), BorderLayout.CENTER);
-        JPanel botoes = new JPanel();
-        botao(botoes, "Atualizar", this::carregar);
-        botao(botoes, "Nova atividade", this::nova);
-        botao(botoes, "Editar atividade", this::editar);
-        botao(botoes, "Remover atividade", this::remover);
-        botao(botoes, "Pessoas vinculadas", this::pessoas);
-        botao(botoes, "Política de frequência", this::politica);
-        botao(botoes, "Gerar QR Code", this::qr);
-        botao(botoes, "Presença manual", this::manual);
-        add(botoes, BorderLayout.SOUTH);
+
+        JPanel operacoes = new JPanel(new GridLayout(1, 2, 10, 0));
+        JPanel pessoas = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        pessoas.setBorder(BorderFactory.createTitledBorder("Pessoas da atividade"));
+        botao(pessoas, "Consultar e vincular", this::pessoas);
+        operacoes.add(pessoas);
+
+        JPanel frequencia = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        frequencia.setBorder(BorderFactory.createTitledBorder("Frequência"));
+        botao(frequencia, "Definir critério", this::politica);
+        botao(frequencia, "Gerar QR Code", this::qr);
+        botao(frequencia, "Lançar manualmente", this::manual);
+        operacoes.add(frequencia);
+        add(operacoes, BorderLayout.SOUTH);
         definirEvento(null);
     }
 
@@ -189,18 +202,19 @@ public class AtividadesPainel extends JPanel {
     private void remover() {
         Long id = selecionada();
         if (id == null) return;
-        if (!evento.getString("status").equals("RASCUNHO")) {
-            JOptionPane.showMessageDialog(this, "Somente atividades de eventos em rascunho podem ser removidas.");
+        if (!"RASCUNHO".equals(evento.optString("status"))) {
+            JOptionPane.showMessageDialog(
+                    this, "Somente atividades de eventos em rascunho podem ser excluídas.");
             return;
         }
-        int resposta =
-                JOptionPane.showConfirmDialog(
-                        this,
-                        "Remover a atividade selecionada? Só é permitido em evento rascunho.",
-                        "Confirmar remoção",
-                        JOptionPane.YES_NO_OPTION);
-        if (resposta != JOptionPane.YES_OPTION) return;
-        TarefaTela.executar(this, () -> { api.removerAtividade(id); return true; }, ok -> carregar());
+        if (JOptionPane.showConfirmDialog(
+                        this, "Excluir a atividade selecionada?", "Confirmar exclusão",
+                        JOptionPane.YES_NO_OPTION)
+                != JOptionPane.YES_OPTION) return;
+        TarefaTela.executar(this, () -> {
+            api.removerAtividade(id);
+            return true;
+        }, ok -> carregar());
     }
 
     private void pessoas() {
@@ -218,40 +232,34 @@ public class AtividadesPainel extends JPanel {
                                 .append(pessoa.getString("nomePessoa"))
                                 .append(" — ")
                                 .append(pessoa.getString("papel"))
-                                .append(" (conta #")
-                                .append(pessoa.getLong("usuarioId"))
-                                .append(")\n");
+                                .append("\n");
                     }
                     if (lista.isEmpty()) texto.append("Nenhuma pessoa vinculada.\n");
-                    texto.append("\nPara vincular, é necessário informar o ID de uma conta existente.");
+                    texto.append("\nPara vincular, informe o e-mail usado na conta.");
                     if (JOptionPane.showConfirmDialog(
                                     this,
                                     texto.toString(),
                                     "Pessoas — " + tituloAtividade,
                                     JOptionPane.OK_CANCEL_OPTION)
                             != JOptionPane.OK_OPTION) return;
-                    JTextField usuarioId = new JTextField();
+                    JTextField email = new JTextField();
                     JComboBox<String> papel =
                             new JComboBox<>(new String[] {"PALESTRANTE", "APRESENTADOR", "RESPONSAVEL"});
                     JPanel formulario = new JPanel(new GridLayout(0, 1, 4, 4));
-                    formulario.add(new JLabel("ID da conta existente"));
-                    formulario.add(usuarioId);
+                    formulario.add(new JLabel("E-mail da conta"));
+                    formulario.add(email);
                     formulario.add(new JLabel("Papel na atividade"));
                     formulario.add(papel);
                     if (JOptionPane.showConfirmDialog(
                                     this, formulario, "Vincular pessoa", JOptionPane.OK_CANCEL_OPTION)
                             != JOptionPane.OK_OPTION) return;
-                    try {
-                        long conta = Long.parseLong(usuarioId.getText().trim());
-                        TarefaTela.executar(
-                                this,
-                                () -> api.vincularPessoa(id, conta, (String) papel.getSelectedItem()),
-                                vinculada -> JOptionPane.showMessageDialog(
-                                        this,
-                                        vinculada.getString("nomePessoa") + " foi vinculada à atividade."));
-                    } catch (NumberFormatException e) {
-                        JOptionPane.showMessageDialog(this, "Informe o ID numérico de uma conta existente.");
-                    }
+                    TarefaTela.executar(
+                            this,
+                            () -> api.vincularPessoa(
+                                    id, email.getText().trim(), (String) papel.getSelectedItem()),
+                            vinculada -> JOptionPane.showMessageDialog(
+                                    this,
+                                    vinculada.getString("nomePessoa") + " foi vinculada à atividade."));
                 });
     }
 
@@ -282,6 +290,18 @@ public class AtividadesPainel extends JPanel {
     private void qr() {
         Long id = selecionada();
         if (id == null) return;
+        TarefaTela.executar(this, () -> api.politicaFrequencia(id), politica -> gerarQr(id, politica));
+    }
+
+    private void gerarQr(long id, String politica) {
+        if ("MANUAL".equals(politica)) {
+            JOptionPane.showMessageDialog(
+                    this, "Esta atividade usa validação manual e não gera QR Code.");
+            return;
+        }
+        String[] tipos = "ENTRADA_SAIDA".equals(politica)
+                ? new String[] {"ENTRADA", "SAIDA"}
+                : new String[] {"CHECK_IN"};
         String tipo =
                 (String)
                         JOptionPane.showInputDialog(
@@ -290,8 +310,8 @@ public class AtividadesPainel extends JPanel {
                                 "Gerar QR Code",
                                 JOptionPane.QUESTION_MESSAGE,
                                 null,
-                                new String[] {"CHECK_IN", "ENTRADA", "SAIDA"},
-                                "CHECK_IN");
+                                tipos,
+                                tipos[0]);
         if (tipo == null) return;
         TarefaTela.executar(
                 this,

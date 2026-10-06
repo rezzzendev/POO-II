@@ -175,7 +175,6 @@ public class AtividadeRepositoryJdbc implements AtividadeRepository {
         String sql = "DELETE FROM atividades WHERE id = ?";
         try (Connection conn = ConnectionFactory.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-
             stmt.setLong(1, id);
             stmt.executeUpdate();
         } catch (SQLException e) {
@@ -186,8 +185,7 @@ public class AtividadeRepositoryJdbc implements AtividadeRepository {
     @Override
     public void vincularPessoa(Long atividadeId, VinculoPessoa vinculo) {
         String sql =
-                "MERGE INTO atividade_pessoas (atividade_id, usuario_id, papel) KEY (atividade_id,"
-                        + " usuario_id, papel) VALUES (?, ?, ?)";
+                "INSERT INTO atividade_pessoas (atividade_id, usuario_id, papel) VALUES (?, ?, ?)";
         try (Connection conn = ConnectionFactory.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -196,6 +194,8 @@ public class AtividadeRepositoryJdbc implements AtividadeRepository {
             stmt.setString(3, vinculo.getPapel());
             stmt.executeUpdate();
         } catch (SQLException e) {
+            // O vínculo já existente é idempotente em H2 e PostgreSQL.
+            if ("23505".equals(e.getSQLState())) return;
             throw new PersistenciaException(
                     "Erro ao vincular pessoa à atividade " + atividadeId + ".", e);
         }

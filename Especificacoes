@@ -10,10 +10,9 @@ adaptadores)
 Por quê: É a arquitetura recomendada no próprio documento (RNF-01, ROO-09)
 ────────────────────────────────────────
 Camada: Persistência
-Tecnologia: JDBC puro + H2 embarcado (arquivo local)
-Por quê: Banco relacional real (RNF-04) sem exigir servidor instalado —
-roda em qualquer máquina (RNF-15). Sem JPA/Hibernate, você mesmo escreve
-o mapeamento, o que reforça o aprendizado de POO em vez de mascará-lo
+Tecnologia: JDBC puro + PostgreSQL em Docker
+Por quê: Banco relacional executado de forma reproduzível pelo Compose (RNF-04/RNF-15).
+Sem JPA/Hibernate, o mapeamento continua explícito e reforça o aprendizado de POO.
 ────────────────────────────────────────
 Camada: API REST
 Tecnologia: com.sun.net.httpserver.HttpServer (nativo do JDK) + org.json

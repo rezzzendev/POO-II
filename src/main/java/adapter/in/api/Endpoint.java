@@ -2,11 +2,14 @@ package adapter.in.api;
 
 import com.sun.net.httpserver.*;
 
+import domain.RegraViolada;
+
 import org.json.*;
 
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.NoSuchElementException;
 
 /** Template Method: transporte e tratamento de erro comuns, rotas definidas nos handlers. */
 public abstract class Endpoint implements HttpHandler {
@@ -18,7 +21,11 @@ public abstract class Endpoint implements HttpHandler {
             HttpJson.responder(e, 401, HttpJson.erro(x.getMessage()));
         } catch (NaoAutorizadoException x) {
             HttpJson.responder(e, 403, HttpJson.erro(x.getMessage()));
-        } catch (IllegalArgumentException | JSONException | java.time.DateTimeException x) {
+        } catch (NoSuchElementException x) {
+            HttpJson.responder(e, 404, HttpJson.erro(x.getMessage()));
+        } catch (RegraViolada | JSONException | java.time.DateTimeException x) {
+            HttpJson.responder(e, 400, HttpJson.erro(x.getMessage()));
+        } catch (IllegalArgumentException x) {
             HttpJson.responder(e, 400, HttpJson.erro(x.getMessage()));
         } catch (Exception x) {
             HttpJson.falhaInterna(e, x);

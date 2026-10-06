@@ -1,13 +1,11 @@
 package adapter.in.api;
 
-import application.usuario.UsuarioRepository;
+import application.usuario.UsuarioService;
 
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 
 import domain.usuario.Papel;
 import domain.usuario.Usuario;
-import domain.usuario.UsuarioInvalidoException;
 
 import org.json.JSONObject;
 
@@ -18,79 +16,58 @@ import java.io.IOException;
  * instância — RF-01 (cadastro), RF-02 (autenticação) e RF-03 (participante consulta/atualiza os
  * próprios dados).
  */
-public class UsuarioHttpHandler implements HttpHandler {
+public class UsuarioHttpHandler extends Endpoint {
 
-    private final application.usuario.UsuarioService service;
-    private final UsuarioRepository repository;
+    private final UsuarioService service;
     private final SessaoStore sessoes;
     private final Autenticador autenticador;
 
     public UsuarioHttpHandler(
-            UsuarioRepository repository, SessaoStore sessoes, Autenticador autenticador) {
-        this.repository = repository;
-        this.service = new application.usuario.UsuarioService(repository);
+            UsuarioService service, SessaoStore sessoes, Autenticador autenticador) {
+        this.service = service;
         this.sessoes = sessoes;
         this.autenticador = autenticador;
     }
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
-        if (HttpJson.tratarPreflight(exchange)) {
+    protected void executar(HttpExchange exchange) throws IOException {
+        String caminho = exchange.getRequestURI().getPath();
+        String metodo = exchange.getRequestMethod();
+
+        if (caminho.equals("/usuarios") && metodo.equals("POST")) {
+            cadastrar(exchange);
             return;
         }
-
-        try {
-            String caminho = exchange.getRequestURI().getPath();
-            String metodo = exchange.getRequestMethod();
-
-            if (caminho.equals("/usuarios") && metodo.equals("POST")) {
-                cadastrar(exchange);
-                return;
-            }
-            if (caminho.equals("/login") && metodo.equals("POST")) {
-                login(exchange);
-                return;
-            }
-            if (caminho.equals("/usuarios/me") && metodo.equals("GET")) {
-                meuPerfil(exchange);
-                return;
-            }
-            if (caminho.equals("/usuarios/me") && metodo.equals("PUT")) {
-                editarMeuPerfil(exchange);
-                return;
-            }
-
-            if (caminho.matches("/usuarios/[0-9]+/papel") && metodo.equals("PUT")) {
-                var admin = autenticador.exigir(exchange, Papel.ADMINISTRADOR);
-                long id = Long.parseLong(caminho.split("/")[2]);
-                if (id == admin.getId())
-                    throw new UsuarioInvalidoException(
-                            "Não altere seu próprio perfil administrativo.");
-                var usuario =
-                        repository
-                                .buscarPorId(id)
-                                .orElseThrow(
-                                        () ->
-                                                new UsuarioInvalidoException(
-                                                        "Usuário não encontrado."));
-                usuario.alterarPapel(Papel.valueOf(HttpJson.lerCorpo(exchange).getString("papel")));
-                HttpJson.responder(exchange, 200, paraJson(repository.salvar(usuario)));
-                return;
-            }
-            HttpJson.responder(exchange, 404, HttpJson.erro("Rota não encontrada."));
-        } catch (UsuarioInvalidoException e) {
-            HttpJson.responder(exchange, 400, HttpJson.erro(e.getMessage()));
-        } catch (NaoAutorizadoException e) {
-            HttpJson.responder(exchange, 403, HttpJson.erro(e.getMessage()));
-        } catch (NaoAutenticadoException e) {
-            HttpJson.responder(exchange, 401, HttpJson.erro(e.getMessage()));
-        } catch (IllegalArgumentException
-                | org.json.JSONException
-                | java.time.DateTimeException e) {
-            HttpJson.responder(exchange, 400, HttpJson.erro(e.getMessage()));
-        } catch (Exception e) {
-            HttpJson.falhaInterna(exchange, e);
+        if (caminho.equals("/login") && metodo.equals("POST")) {
+            login(exchange);
+            return;
         }
+        if (caminho.equals("/usuarios/me") && metodo.equals("GET")) {
+            meuPerfil(exchange);
+            return;
+        }
+        if (caminho.equals("/usuarios/me") && metodo.equals("PUT")) {
+            editarMeuPerfil(exchange);
+            return;
+        }
+        if (caminho.equals("/usuarios/papel") && metodo.equals("PUT")) {
+            var admin = autenticador.exigir(exchange, Papel.ADMINISTRADOR);
+            JSONObject corpo = HttpJson.lerCorpo(exchange);
+            Papel papel = Papel.valueOf(corpo.getString("papel"));
+            HttpJson.responder(
+                    exchange,
+                    200,
+                    paraJson(service.alterarPapel(admin, corpo.optString("email", null), papel)));
+            return;
+        }
+        if (caminho.matches("/usuarios/[0-9]+/papel") && metodo.equals("PUT")) {
+            var admin = autenticador.exigir(exchange, Papel.ADMINISTRADOR);
+            long id = Long.parseLong(caminho.split("/")[2]);
+            Papel papel = Papel.valueOf(HttpJson.lerCorpo(exchange).getString("papel"));
+            HttpJson.responder(exchange, 200, paraJson(service.alterarPapel(admin, id, papel)));
+            return;
+        }
+        naoEncontrado(exchange);
     }
 
     private void cadastrar(HttpExchange exchange) throws IOException {

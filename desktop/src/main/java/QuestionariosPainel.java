@@ -7,8 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -37,20 +35,18 @@ public class QuestionariosPainel extends JPanel {
     private final JTable tabela = new JTable(modelo);
 
     public QuestionariosPainel(EventoApiClient api) {
-        super(new BorderLayout());
+        super(new BorderLayout(8, 8));
         this.api = api;
-        add(contexto, BorderLayout.NORTH);
-        add(new JScrollPane(tabela), BorderLayout.CENTER);
-
-        JPanel botoes = new JPanel();
-        JButton atualizar = new JButton("Atualizar");
-        atualizar.addActionListener(e -> carregar());
+        JPanel topo = new JPanel(new BorderLayout(8, 4));
+        topo.add(contexto, BorderLayout.CENTER);
+        JPanel acoes = new JPanel();
         novo.addActionListener(e -> novo());
         resultados.addActionListener(e -> resultados());
-        botoes.add(atualizar);
-        botoes.add(novo);
-        botoes.add(resultados);
-        add(botoes, BorderLayout.SOUTH);
+        acoes.add(novo);
+        acoes.add(resultados);
+        topo.add(acoes, BorderLayout.EAST);
+        add(topo, BorderLayout.NORTH);
+        add(new JScrollPane(tabela), BorderLayout.CENTER);
         definirAtividade(0, null);
     }
 

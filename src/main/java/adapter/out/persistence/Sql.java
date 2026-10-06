@@ -38,6 +38,15 @@ public final class Sql {
         }
     }
 
+    public static int atualizar(String sql, Object... args) {
+        try (Connection c = ConnectionFactory.getConnection();
+                PreparedStatement p = preparar(c, sql, args)) {
+            return p.executeUpdate();
+        } catch (SQLException e) {
+            throw falha(e);
+        }
+    }
+
     public static long executar(Connection c, String sql, Object... args) throws SQLException {
         try (PreparedStatement p = preparar(c, sql, args)) {
             p.executeUpdate();

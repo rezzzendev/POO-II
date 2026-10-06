@@ -5,17 +5,17 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
 /** Painel de consulta e exportação dos relatórios administrativos oferecidos pela API. */
@@ -26,9 +26,11 @@ public class RelatoriosPainel extends JPanel {
     private final JButton exportar;
     private final JLabel contexto;
     private final JComboBox<String> tipo = new JComboBox<>(new String[] {"Inscritos", "Frequência"});
-    private final JTextField atividadeId = new JTextField(8);
+    private final JComboBox<String> atividade = new JComboBox<>();
+    private final List<Long> atividadeIds = new ArrayList<>();
     private final JLabel resumo = new JLabel("Informe filtros e selecione Consultar.");
     private long sequenciaConsulta;
+    private long sequenciaAtividades;
     private final DefaultTableModel modelo =
             new DefaultTableModel(
                     new String[] {"Conta", "Nome", "E-mail", "Inscrição", "Atividade", "Presente", "Marcações"},
@@ -50,8 +52,8 @@ public class RelatoriosPainel extends JPanel {
         JPanel filtros = new JPanel(new FlowLayout(FlowLayout.LEADING));
         filtros.add(new JLabel("Relatório"));
         filtros.add(tipo);
-        filtros.add(new JLabel("ID da atividade (opcional)"));
-        filtros.add(atividadeId);
+        filtros.add(new JLabel("Atividade"));
+        filtros.add(atividade);
         consultar.addActionListener(e -> consultar());
         exportar.addActionListener(e -> exportar());
         filtros.add(consultar);
@@ -75,6 +77,7 @@ public class RelatoriosPainel extends JPanel {
                 : "Selecione um evento para consultar os relatórios.");
         modelo.setRowCount(0);
         resumo.setText("Selecione Consultar para carregar os dados.");
+        carregarAtividades();
     }
 
     private String rota() {
@@ -83,25 +86,45 @@ public class RelatoriosPainel extends JPanel {
 
     private String consulta() {
         if (evento == null) throw new IllegalStateException("Selecione um evento primeiro.");
-        String filtro = atividadeId.getText().trim();
-        if (!filtro.isEmpty()) Long.parseLong(filtro);
+        int indice = atividade.getSelectedIndex();
+        Long filtro = indice <= 0 || indice > atividadeIds.size()
+                ? null : atividadeIds.get(indice - 1);
         return "/relatorios/" + rota() + "?eventoId=" + evento.getLong("id")
-                + (filtro.isEmpty() ? "" : "&atividadeId=" + filtro);
+                + (filtro == null ? "" : "&atividadeId=" + filtro);
+    }
+
+    private void carregarAtividades() {
+        atividade.removeAllItems();
+        atividade.addItem("Evento inteiro");
+        atividadeIds.clear();
+        if (evento == null) {
+            atividade.setEnabled(false);
+            return;
+        }
+        long eventoId = evento.getLong("id");
+        long chamada = ++sequenciaAtividades;
+        atividade.setEnabled(false);
+        TarefaTela.executar(this, () -> api.atividades(eventoId), lista -> {
+            if (chamada != sequenciaAtividades || evento == null
+                    || evento.getLong("id") != eventoId) return;
+            for (int i = 0; i < lista.length(); i++) {
+                JSONObject item = lista.getJSONObject(i);
+                atividadeIds.add(item.getLong("id"));
+                atividade.addItem(item.getString("titulo"));
+            }
+            atividade.setEnabled(true);
+        });
     }
 
     private void consultar() {
-        try {
-            String caminho = consulta();
-            long chamada = ++sequenciaConsulta;
-            TarefaTela.executar(
-                    this,
-                    () -> new JSONObject(api.requisicao("GET", caminho, null)),
-                    resultado -> {
-                        if (chamada == sequenciaConsulta) mostrar(resultado);
-                    });
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "O ID da atividade deve ser um número inteiro.");
-        }
+        String caminho = consulta();
+        long chamada = ++sequenciaConsulta;
+        TarefaTela.executar(
+                this,
+                () -> new JSONObject(api.requisicao("GET", caminho, null)),
+                resultado -> {
+                    if (chamada == sequenciaConsulta) mostrar(resultado);
+                });
     }
 
     private void mostrar(JSONObject relatorio) {
@@ -127,13 +150,7 @@ public class RelatoriosPainel extends JPanel {
     }
 
     private void exportar() {
-        final String caminho;
-        try {
-            caminho = consulta() + "&formato=csv";
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "O ID da atividade deve ser um número inteiro.");
-            return;
-        }
+        final String caminho = consulta() + "&formato=csv";
         JFileChooser escolha = new JFileChooser();
         escolha.setSelectedFile(new File("relatorio-" + rota() + ".csv"));
         if (escolha.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;

@@ -1,0 +1,9 @@
+target
+desktop
+data
+.git
+.idea
+.vscode
+docs
+*.png
+*.pdf

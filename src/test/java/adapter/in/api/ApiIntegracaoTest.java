@@ -145,6 +145,38 @@ class ApiIntegracaoTest {
     }
 
     @Test
+    void programacaoPodeSerPaginadaSemQuebrarAListaAntiga() throws Exception {
+        long e = evento();
+        atividade(e, "Atividade A", "2026-09-24T09:00:00", "2026-09-24T10:00:00", 10);
+        atividade(e, "Atividade B", "2026-09-24T10:00:00", "2026-09-24T11:00:00", 10);
+
+        JSONArray listaAntiga =
+                new JSONArray(req("GET", "/atividades?eventoId=" + e, admin, null).body());
+        assertEquals(2, listaAntiga.length());
+
+        JSONObject pagina =
+                json(req(
+                        "GET",
+                        "/atividades?eventoId=" + e + "&pagina=2&tamanho=1",
+                        admin,
+                        null));
+        assertEquals(2, pagina.getInt("pagina"));
+        assertEquals(1, pagina.getInt("tamanho"));
+        assertEquals(2, pagina.getInt("total"));
+        assertEquals(2, pagina.getInt("totalPaginas"));
+        assertEquals(1, pagina.getJSONArray("itens").length());
+
+        assertEquals(
+                400,
+                req(
+                                "GET",
+                                "/atividades?eventoId=" + e + "&pagina=1&tamanho=0",
+                                admin,
+                                null)
+                        .statusCode());
+    }
+
+    @Test
     void fluxoCompletoQrManualQuestionarioRelatorio() throws Exception {
         long e = evento(),
                 a = atividade(e, "Oficina", "2026-09-24T11:00:00", "2026-09-24T13:00:00", 2);
@@ -398,6 +430,33 @@ class ApiIntegracaoTest {
         assertEquals(
                 403,
                 req("GET", "/relatorios/inscritos?eventoId=" + e, participante, null).statusCode());
+    }
+
+    @Test
+    void gestaoUsaEmailEmVezDeIdDaConta() throws Exception {
+        long eventoId = evento();
+        long atividadeId =
+                atividade(eventoId, "Atividade", "2026-09-24T11:00:00", "2026-09-24T13:00:00", 10);
+
+        JSONObject vinculo =
+                json(post(
+                        "/atividades/" + atividadeId + "/pessoas",
+                        admin,
+                        new JSONObject()
+                                .put("email", "p@test.local")
+                                .put("papel", "PALESTRANTE"),
+                        201));
+        assertEquals("Pessoa", vinculo.getString("nomePessoa"));
+
+        JSONObject usuario =
+                json(req(
+                        "PUT",
+                        "/usuarios/papel",
+                        admin,
+                        new JSONObject()
+                                .put("email", "p@test.local")
+                                .put("papel", "ORGANIZADOR")));
+        assertEquals("ORGANIZADOR", usuario.getString("papel"));
     }
 
     @Test

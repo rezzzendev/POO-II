@@ -1,18 +1,13 @@
 package adapter.in.api;
 
-import application.atividade.AtividadeRepository;
-import application.evento.EventoRepository;
-import application.usuario.UsuarioRepository;
+import application.atividade.AtividadeService;
 
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 
 import domain.atividade.Atividade;
 import domain.atividade.AtividadeInvalidaException;
 import domain.atividade.VinculoPessoa;
-import domain.evento.Evento;
 import domain.usuario.Papel;
-import domain.usuario.Usuario;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -23,58 +18,28 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
-import java.util.Optional;
 
 /**
  * Contexto "/atividades". Listar aceita filtros combináveis por query string (RF-09): eventoId,
  * data, trilha, tipo, local — todos opcionais.
  */
-public class AtividadeHttpHandler implements HttpHandler {
+public class AtividadeHttpHandler extends Endpoint {
 
     private static final Papel[] PODE_GERENCIAR_ATIVIDADES = {
         Papel.ORGANIZADOR, Papel.ADMINISTRADOR
     };
 
-    private final AtividadeRepository repository;
-    private final EventoRepository eventoRepository;
-    private final UsuarioRepository usuarioRepository;
+    private final AtividadeService service;
     private final Autenticador autenticador;
 
-    public AtividadeHttpHandler(
-            AtividadeRepository repository,
-            EventoRepository eventoRepository,
-            UsuarioRepository usuarioRepository,
-            Autenticador autenticador) {
-        this.repository = repository;
-        this.eventoRepository = eventoRepository;
-        this.usuarioRepository = usuarioRepository;
+    public AtividadeHttpHandler(AtividadeService service, Autenticador autenticador) {
+        this.service = service;
         this.autenticador = autenticador;
     }
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
-        if (HttpJson.tratarPreflight(exchange)) {
-            return;
-        }
-
-        try {
-            rotear(exchange);
-        } catch (AtividadeInvalidaException | DateTimeParseException e) {
-            HttpJson.responder(exchange, 400, HttpJson.erro(e.getMessage()));
-        } catch (NumberFormatException e) {
-            HttpJson.responder(exchange, 400, HttpJson.erro("Id precisa ser um número."));
-        } catch (NaoAutenticadoException e) {
-            HttpJson.responder(exchange, 401, HttpJson.erro(e.getMessage()));
-        } catch (NaoAutorizadoException e) {
-            HttpJson.responder(exchange, 403, HttpJson.erro(e.getMessage()));
-        } catch (IllegalArgumentException
-                | org.json.JSONException
-                | java.time.DateTimeException e) {
-            HttpJson.responder(exchange, 400, HttpJson.erro(e.getMessage()));
-        } catch (Exception e) {
-            HttpJson.falhaInterna(exchange, e);
-        }
+    protected void executar(HttpExchange exchange) throws IOException {
+        rotear(exchange);
     }
 
     private void rotear(HttpExchange exchange) throws IOException {
@@ -126,24 +91,48 @@ public class AtividadeHttpHandler implements HttpHandler {
         String tipo = parametroTexto(exchange, "tipo");
         String local = parametroTexto(exchange, "local");
 
-        JSONArray json = new JSONArray();
         boolean gestor = autenticador.podeGerenciar(exchange);
-        repository.buscar(eventoId, data, trilha, tipo, local).stream()
-                .filter(
-                        a ->
-                                gestor
-                                        || a.getEvento().getStatus()
-                                                == domain.evento.StatusEvento.PUBLICADO)
-                .forEach(atividade -> json.put(paraJson(atividade)));
-        HttpJson.responder(exchange, 200, json);
+        var encontradas = service.listar(eventoId, data, trilha, tipo, local, gestor);
+        Integer pagina = parametroInteiro(exchange, "pagina");
+        Integer tamanho = parametroInteiro(exchange, "tamanho");
+
+        // Sem os dois parâmetros, conserva o contrato antigo usado pelo desktop.
+        if (pagina == null && tamanho == null) {
+            JSONArray json = new JSONArray();
+            encontradas.forEach(atividade -> json.put(paraJson(atividade)));
+            HttpJson.responder(exchange, 200, json);
+            return;
+        }
+        if (pagina == null || tamanho == null)
+            throw new IllegalArgumentException("Informe pagina e tamanho juntos.");
+        if (pagina < 1) throw new IllegalArgumentException("A página deve ser maior que zero.");
+        if (tamanho < 1 || tamanho > 50)
+            throw new IllegalArgumentException("O tamanho da página deve estar entre 1 e 50.");
+
+        int total = encontradas.size();
+        int totalPaginas = Math.max(1, (int) Math.ceil((double) total / tamanho));
+        int inicio = Math.min((pagina - 1) * tamanho, total);
+        int fim = Math.min(inicio + tamanho, total);
+        JSONArray itens = new JSONArray();
+        encontradas.subList(inicio, fim).forEach(atividade -> itens.put(paraJson(atividade)));
+        HttpJson.responder(
+                exchange,
+                200,
+                new JSONObject()
+                        .put("itens", itens)
+                        .put("pagina", pagina)
+                        .put("tamanho", tamanho)
+                        .put("total", total)
+                        .put("totalPaginas", totalPaginas));
     }
 
     private void criar(HttpExchange exchange) throws IOException {
         autenticador.exigir(exchange, PODE_GERENCIAR_ATIVIDADES);
 
         JSONObject corpo = HttpJson.lerCorpo(exchange);
-        Atividade candidata =
-                Atividade.nova(
+        Atividade atividade =
+                service.criar(
+                        eventoId(corpo),
                         corpo.optString("titulo", null),
                         corpo.optString("descricao", null),
                         corpo.optString("tipo", null),
@@ -153,22 +142,13 @@ public class AtividadeHttpHandler implements HttpHandler {
                         data(corpo, "fim"),
                         corpo.has("capacidade") && !corpo.isNull("capacidade")
                                 ? corpo.getInt("capacidade")
-                                : null,
-                        evento(corpo));
-        HttpJson.responder(
-                exchange,
-                201,
-                paraJson(
-                        new application.atividade.ProgramacaoService(repository)
-                                .salvar(candidata)));
+                                : null);
+        HttpJson.responder(exchange, 201, paraJson(atividade));
     }
 
     private void buscar(HttpExchange exchange, Long id) throws IOException {
-        Optional<Atividade> atividade = repository.buscarPorId(id);
-        if (atividade.isEmpty()
-                || (!autenticador.podeGerenciar(exchange)
-                        && atividade.get().getEvento().getStatus()
-                                != domain.evento.StatusEvento.PUBLICADO)) {
+        var atividade = service.buscar(id, autenticador.podeGerenciar(exchange));
+        if (atividade.isEmpty()) {
             HttpJson.responder(
                     exchange, 404, HttpJson.erro("Atividade " + id + " não encontrada."));
             return;
@@ -179,104 +159,69 @@ public class AtividadeHttpHandler implements HttpHandler {
     private void editar(HttpExchange exchange, Long id) throws IOException {
         autenticador.exigir(exchange, PODE_GERENCIAR_ATIVIDADES);
 
-        Optional<Atividade> existente = repository.buscarPorId(id);
-        if (existente.isEmpty()) {
-            HttpJson.responder(
-                    exchange, 404, HttpJson.erro("Atividade " + id + " não encontrada."));
-            return;
-        }
         JSONObject corpo = HttpJson.lerCorpo(exchange);
-        Atividade atividade = existente.get();
-        atividade.editar(
-                corpo.optString("titulo", null),
-                corpo.optString("descricao", null),
-                corpo.optString("tipo", null),
-                corpo.optString("trilha", null),
-                corpo.optString("local", null),
-                data(corpo, "inicio"),
-                data(corpo, "fim"),
-                corpo.has("capacidade") && !corpo.isNull("capacidade")
-                        ? corpo.getInt("capacidade")
-                        : null);
-        HttpJson.responder(
-                exchange,
-                200,
-                paraJson(
-                        new application.atividade.ProgramacaoService(repository)
-                                .salvar(atividade)));
+        Atividade atividade =
+                service.editar(
+                        id,
+                        corpo.optString("titulo", null),
+                        corpo.optString("descricao", null),
+                        corpo.optString("tipo", null),
+                        corpo.optString("trilha", null),
+                        corpo.optString("local", null),
+                        data(corpo, "inicio"),
+                        data(corpo, "fim"),
+                        corpo.has("capacidade") && !corpo.isNull("capacidade")
+                                ? corpo.getInt("capacidade")
+                                : null);
+        HttpJson.responder(exchange, 200, paraJson(atividade));
     }
 
     private void remover(HttpExchange exchange, Long id) throws IOException {
         autenticador.exigir(exchange, PODE_GERENCIAR_ATIVIDADES);
-
-        if (repository.buscarPorId(id).isEmpty()) {
-            HttpJson.responder(
-                    exchange, 404, HttpJson.erro("Atividade " + id + " não encontrada."));
-            return;
-        }
-        new application.atividade.ProgramacaoService(repository).remover(id);
+        service.remover(id);
         exchange.sendResponseHeaders(204, -1);
         exchange.close();
     }
 
     private void listarPessoas(HttpExchange exchange, Long atividadeId) throws IOException {
-        var atividade = repository.buscarPorId(atividadeId);
-        if (atividade.isEmpty()
-                || (!autenticador.podeGerenciar(exchange)
-                        && atividade.get().getEvento().getStatus()
-                                != domain.evento.StatusEvento.PUBLICADO)) {
-            HttpJson.responder(exchange, 404, HttpJson.erro("Atividade não encontrada."));
-            return;
-        }
         JSONArray json = new JSONArray();
-        repository.listarPessoas(atividadeId).forEach(vinculo -> json.put(paraJson(vinculo)));
+        service.listarPessoas(atividadeId, autenticador.podeGerenciar(exchange))
+                .forEach(vinculo -> json.put(paraJson(vinculo)));
         HttpJson.responder(exchange, 200, json);
     }
 
     private void vincularPessoa(HttpExchange exchange, Long atividadeId) throws IOException {
         autenticador.exigir(exchange, PODE_GERENCIAR_ATIVIDADES);
 
-        if (repository.buscarPorId(atividadeId).isEmpty()) {
-            HttpJson.responder(
-                    exchange, 404, HttpJson.erro("Atividade " + atividadeId + " não encontrada."));
-            return;
-        }
         JSONObject corpo = HttpJson.lerCorpo(exchange);
-        Long usuarioId = corpo.has("usuarioId") ? corpo.getLong("usuarioId") : null;
-        String nome =
-                usuarioId == null
-                        ? null
-                        : usuarioRepository
-                                .buscarPorId(usuarioId)
-                                .map(Usuario::getNome)
-                                .orElseThrow(
-                                        () ->
-                                                new AtividadeInvalidaException(
-                                                        "Usuário "
-                                                                + usuarioId
-                                                                + " não encontrado."));
-        VinculoPessoa vinculo = new VinculoPessoa(usuarioId, nome, corpo.optString("papel", null));
-
-        repository.vincularPessoa(atividadeId, vinculo);
+        VinculoPessoa vinculo =
+                corpo.has("email")
+                        ? service.vincularPessoa(
+                                atividadeId,
+                                corpo.optString("email", null),
+                                corpo.optString("papel", null))
+                        : service.vincularPessoa(
+                                atividadeId,
+                                corpo.getLong("usuarioId"),
+                                corpo.optString("papel", null));
         HttpJson.responder(exchange, 201, paraJson(vinculo));
     }
 
-    private Evento evento(JSONObject corpo) {
+    private long eventoId(JSONObject corpo) {
         if (!corpo.has("eventoId")) {
             throw new AtividadeInvalidaException("eventoId é obrigatório.");
         }
-        long eventoId = corpo.getLong("eventoId");
-        return eventoRepository
-                .buscarPorId(eventoId)
-                .orElseThrow(
-                        () ->
-                                new AtividadeInvalidaException(
-                                        "Evento " + eventoId + " não encontrado."));
+        return corpo.getLong("eventoId");
     }
 
     private Long parametroLong(HttpExchange exchange, String nome) {
         String valor = parametroTexto(exchange, nome);
         return valor == null ? null : Long.valueOf(valor);
+    }
+
+    private Integer parametroInteiro(HttpExchange exchange, String nome) {
+        String valor = parametroTexto(exchange, nome);
+        return valor == null ? null : Integer.valueOf(valor);
     }
 
     private LocalDate parametroData(HttpExchange exchange, String nome) {

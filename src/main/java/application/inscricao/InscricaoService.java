@@ -77,6 +77,31 @@ public class InscricaoService {
         return regras.buscar(evento(id));
     }
 
+    public List<Inscricao> listarDoUsuario(Usuario usuario) {
+        return inscricoes.listarPorUsuario(usuario.getId());
+    }
+
+    public List<Inscricao> listarDoEvento(long eventoId) {
+        evento(eventoId);
+        return inscricoes.listarPorEvento(eventoId);
+    }
+
+    public List<Atividade> agenda(Usuario usuario) {
+        List<Atividade> agenda = new ArrayList<>();
+        for (Inscricao inscricao : inscricoes.listarPorUsuario(usuario.getId())) {
+            if (inscricao.getStatus() != StatusInscricao.CONFIRMADA) continue;
+            for (Long atividadeId : inscricao.getAtividadeIds())
+                atividades.buscarPorId(atividadeId).ifPresent(agenda::add);
+        }
+        agenda.sort(
+                Comparator.comparing(
+                        atividade ->
+                                atividade.getInicio()
+                                        .atZone(atividade.getEvento().getFuso())
+                                        .toInstant()));
+        return agenda;
+    }
+
     private Evento evento(long id) {
         return eventos.buscarPorId(id)
                 .orElseThrow(() -> new RegraViolada("Evento não encontrado."));

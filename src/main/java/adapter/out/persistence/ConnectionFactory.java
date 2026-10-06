@@ -11,13 +11,18 @@ public class ConnectionFactory {
     private static final Set<String> inicializados = new HashSet<>();
 
     public static synchronized Connection getConnection() throws SQLException {
-        String url = System.getProperty("db.url", "jdbc:h2:file:./data/eventos;DB_CLOSE_DELAY=-1");
+        String url = System.getProperty("db.url", "jdbc:postgresql://localhost:5432/eventos");
+        String usuario = System.getProperty("db.user", "eventos");
+        String senha = System.getProperty("db.password", "eventos");
         try {
-            Class.forName("org.h2.Driver");
+            Class.forName(
+                    url.startsWith("jdbc:h2:")
+                            ? "org.h2.Driver"
+                            : "org.postgresql.Driver");
         } catch (ClassNotFoundException e) {
             throw new SQLException(e);
         }
-        Connection c = DriverManager.getConnection(url, "eventos", "eventos");
+        Connection c = DriverManager.getConnection(url, usuario, senha);
         if (!inicializados.contains(url)) {
             try {
                 executar(c, "/db/001-inicial.sql");

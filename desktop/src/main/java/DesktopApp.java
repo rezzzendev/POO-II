@@ -1,190 +1,206 @@
 import org.json.JSONObject;
-import org.json.JSONArray;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTable;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.table.DefaultTableModel;
 
-/** Painel administrativo em uma única janela; todas as operações passam pelo cliente HTTP. */
+/** Tela de trabalho do organizador. Toda operação é enviada para a API. */
 public class DesktopApp extends JFrame {
 
-    private static final String[] COLUNAS = {"Título", "Modalidade", "Local", "Início", "Status"};
-
     private final EventoApiClient api;
-    private final DefaultTableModel modeloTabela =
-            new DefaultTableModel(COLUNAS, 0) {
-                @Override
-                public boolean isCellEditable(int linha, int coluna) {
-                    return false;
-                }
-            };
-    private final JTable tabela = new JTable(modeloTabela);
-    private final JLabel eventoSelecionado = new JLabel("Selecione um evento na lista.");
     private final List<JSONObject> eventos = new ArrayList<>();
-    private final AtividadesPainel painelAtividades;
-    private final QuestionariosPainel painelQuestionarios;
-    private final RelatoriosPainel painelRelatorios;
+    private final JComboBox<String> seletorEventos = new JComboBox<>();
+    private final JLabel resumoEvento = new JLabel("Selecione um evento.");
+    private final AtividadesPainel atividades;
+    private final QuestionariosPainel questionarios;
+    private final RelatoriosPainel relatorios;
     private final JComboBox<String> atividadeQuestionario = new JComboBox<>();
     private final List<Long> atividadesQuestionarioIds = new ArrayList<>();
+    private boolean atualizandoEventos;
+    private boolean atualizandoAtividades;
     private long sequenciaAtividades;
-    private boolean atualizandoComboAtividades;
 
     public DesktopApp(EventoApiClient api) {
-        super("Gestão de Eventos — Administração");
+        super("Gestão de Eventos");
         this.api = api;
-        painelAtividades = new AtividadesPainel(api);
-        painelQuestionarios = new QuestionariosPainel(api);
-        painelRelatorios = new RelatoriosPainel(api);
+        atividades = new AtividadesPainel(api);
+        questionarios = new QuestionariosPainel(api);
+        relatorios = new RelatoriosPainel(api);
+
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setMinimumSize(new Dimension(960, 620));
-        setSize(1180, 760);
+        setMinimumSize(new Dimension(900, 620));
+        setSize(1080, 720);
         setLocationRelativeTo(null);
-        setLayout(new BorderLayout(12, 12));
 
         JPanel raiz = new JPanel(new BorderLayout(12, 12));
-        raiz.setBorder(BorderFactory.createEmptyBorder(14, 16, 16, 16));
+        raiz.setBackground(Tema.FUNDO);
         raiz.add(criarCabecalho(), BorderLayout.NORTH);
-        raiz.add(criarConteudo(), BorderLayout.CENTER);
+        JPanel margem = new JPanel(new BorderLayout());
+        margem.setBackground(Tema.FUNDO);
+        margem.setBorder(BorderFactory.createEmptyBorder(2, 16, 16, 16));
+        margem.add(criarConteudo(), BorderLayout.CENTER);
+        raiz.add(margem, BorderLayout.CENTER);
         add(raiz);
 
-        tabela.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        tabela.setAutoCreateRowSorter(true);
-        tabela.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) atualizarContexto();
+        seletorEventos.addActionListener(e -> {
+            if (!atualizandoEventos) atualizarContexto();
         });
         carregarEventos();
     }
 
     private JPanel criarCabecalho() {
-        JPanel cabecalho = new JPanel(new BorderLayout(12, 4));
-        JLabel titulo = new JLabel("Painel de administração");
-        titulo.setFont(titulo.getFont().deriveFont(22f));
-        cabecalho.add(titulo, BorderLayout.WEST);
+        JPanel cabecalho = new JPanel(new BorderLayout(18, 4));
+        cabecalho.setBackground(Tema.AZUL);
+        cabecalho.setBorder(BorderFactory.createEmptyBorder(16, 20, 16, 20));
+
+        JPanel identidade = new JPanel();
+        identidade.setOpaque(false);
+        identidade.setLayout(new BoxLayout(identidade, BoxLayout.Y_AXIS));
+        JLabel titulo = new JLabel("Gestão de eventos");
+        titulo.setForeground(Tema.BRANCO);
+        titulo.setFont(titulo.getFont().deriveFont(Font.BOLD, 24f));
+        identidade.add(titulo);
+        JLabel instrucao = new JLabel("Administração e organização · siga as quatro etapas");
+        instrucao.setForeground(new java.awt.Color(0xD4, 0xE4, 0xEC));
+        instrucao.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
+        identidade.add(instrucao);
+        cabecalho.add(identidade, BorderLayout.WEST);
 
         JPanel sessao = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-        sessao.add(new JLabel("Logado como " + api.usuarioLogado()));
+        sessao.setOpaque(false);
+        JLabel usuario = new JLabel(api.usuarioLogado());
+        usuario.setForeground(Tema.BRANCO);
+        sessao.add(usuario);
+        if ("ADMINISTRADOR".equals(api.papelLogado())) {
+            JButton usuarios = new JButton("Gerenciar usuários");
+            Tema.botaoSecundario(usuarios);
+            usuarios.addActionListener(e -> alterarPapel());
+            sessao.add(usuarios);
+        }
         JButton sair = new JButton("Sair");
+        Tema.botaoSecundario(sair);
         sair.addActionListener(e -> sair());
         sessao.add(sair);
         cabecalho.add(sessao, BorderLayout.EAST);
-        cabecalho.add(new JLabel("Selecione um evento e escolha uma área de trabalho."), BorderLayout.SOUTH);
         return cabecalho;
     }
 
-    private JSplitPane criarConteudo() {
-        JPanel eventosPainel = new JPanel(new BorderLayout(8, 8));
-        eventosPainel.setBorder(BorderFactory.createTitledBorder("Eventos"));
-        eventosPainel.add(new JScrollPane(tabela), BorderLayout.CENTER);
+    private JPanel criarConteudo() {
+        JPanel conteudo = new JPanel(new BorderLayout(10, 10));
 
-        JPanel acoesEvento = new JPanel(new GridLayout(0, 2, 6, 6));
-        JButton novo = new JButton("Novo evento");
-        novo.addActionListener(e -> abrirDialogoEvento(null));
-        JButton editar = new JButton("Editar rascunho");
-        editar.addActionListener(e -> { JSONObject evento = selecionado(); if (evento != null) abrirDialogoEvento(evento); });
-        JButton remover = new JButton("Remover rascunho");
-        remover.addActionListener(e -> removerSelecionado());
-        JButton atualizar = new JButton("Atualizar lista");
+        JPanel escolha = new JPanel(new BorderLayout(10, 6));
+        Tema.aplicarCartao(escolha);
+        JLabel rotuloEvento = new JLabel("Evento em gestão");
+        rotuloEvento.setFont(rotuloEvento.getFont().deriveFont(Font.BOLD));
+        escolha.add(rotuloEvento, BorderLayout.WEST);
+        escolha.add(seletorEventos, BorderLayout.CENTER);
+
+        JPanel acoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
+        JButton atualizar = new JButton("Atualizar");
+        Tema.botaoSecundario(atualizar);
         atualizar.addActionListener(e -> carregarEventos());
-        acoesEvento.add(novo);
-        acoesEvento.add(editar);
-        acoesEvento.add(remover);
-        acoesEvento.add(atualizar);
-        eventosPainel.add(acoesEvento, BorderLayout.SOUTH);
+        JButton novo = new JButton("Novo evento");
+        Tema.botaoPrimario(novo);
+        novo.addActionListener(e -> abrirDialogoEvento(null));
+        JButton editar = new JButton("Editar evento");
+        Tema.botaoSecundario(editar);
+        editar.addActionListener(e -> {
+            JSONObject evento = selecionado();
+            if (evento != null) abrirDialogoEvento(evento);
+        });
+        JButton excluir = new JButton("Excluir rascunho");
+        Tema.botaoPerigo(excluir);
+        excluir.addActionListener(e -> removerSelecionado());
+        acoes.add(atualizar);
+        acoes.add(novo);
+        acoes.add(editar);
+        acoes.add(excluir);
+        acoes.setOpaque(false);
+        escolha.add(acoes, BorderLayout.EAST);
+        resumoEvento.setBorder(BorderFactory.createEmptyBorder(4, 4, 0, 4));
+        escolha.add(resumoEvento, BorderLayout.SOUTH);
+        conteudo.add(escolha, BorderLayout.NORTH);
 
-        JPanel operacoes = new JPanel(new BorderLayout(8, 8));
-        operacoes.setBorder(BorderFactory.createTitledBorder("Operações do evento selecionado"));
-        eventoSelecionado.setBorder(BorderFactory.createEmptyBorder(4, 6, 8, 6));
-        operacoes.add(eventoSelecionado, BorderLayout.NORTH);
-
-        javax.swing.JTabbedPane areas = new javax.swing.JTabbedPane();
-        areas.addTab("Evento e inscrição", criarAreaEvento());
-        areas.addTab("Programação e presença", painelAtividades);
-        areas.addTab("Questionários e avaliação", criarAreaQuestionarios());
-        areas.addTab("Relatórios", painelRelatorios);
-        areas.addTab("Papéis de acesso", criarAreaPapeis());
-        areas.setEnabledAt(4, "ADMINISTRADOR".equals(api.papelLogado()));
-        operacoes.add(areas, BorderLayout.CENTER);
-
-        JSplitPane divisao = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, eventosPainel, operacoes);
-        divisao.setResizeWeight(0.48);
-        divisao.setContinuousLayout(true);
-        return divisao;
+        JTabbedPane etapas = new JTabbedPane();
+        etapas.setBackground(Tema.FUNDO);
+        etapas.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
+        etapas.addTab("1. Evento", criarAreaEvento());
+        etapas.addTab("2. Programação e frequência", atividades);
+        etapas.addTab("3. Avaliações", criarAreaQuestionarios());
+        etapas.addTab("4. Relatórios", relatorios);
+        conteudo.add(etapas, BorderLayout.CENTER);
+        return conteudo;
     }
 
     private JPanel criarAreaEvento() {
-        JPanel painel = caixaVertical("Publicação e regras");
-        painel.add(new JLabel("Edite o evento enquanto estiver em rascunho. A API valida as regras."));
-        botao(painel, "Publicar evento", this::publicarSelecionado);
-        botao(painel, "Encerrar evento", this::encerrarSelecionado);
-        botao(painel, "Regras de inscrição", this::regrasSelecionadas);
-        painel.add(javax.swing.Box.createVerticalGlue());
+        JPanel painel = new JPanel();
+        painel.setLayout(new BoxLayout(painel, BoxLayout.Y_AXIS));
+        painel.setBorder(BorderFactory.createEmptyBorder(22, 22, 22, 22));
+
+        JLabel titulo = new JLabel("Prepare o evento antes de publicá-lo");
+        titulo.setFont(titulo.getFont().deriveFont(18f));
+        titulo.setAlignmentX(LEFT_ALIGNMENT);
+        painel.add(titulo);
+        painel.add(Box.createVerticalStrut(8));
+        JLabel ajuda = new JLabel("Defina a inscrição, monte a programação e só então publique.");
+        ajuda.setAlignmentX(LEFT_ALIGNMENT);
+        painel.add(ajuda);
+        painel.add(Box.createVerticalStrut(18));
+        adicionarBotao(painel, "Configurar inscrição", this::regrasSelecionadas);
+        adicionarBotao(painel, "Publicar evento", this::publicarSelecionado);
+        adicionarBotao(painel, "Encerrar evento", this::encerrarSelecionado);
+        painel.add(Box.createVerticalGlue());
         return painel;
     }
 
     private JPanel criarAreaQuestionarios() {
         JPanel painel = new JPanel(new BorderLayout(8, 8));
-        painel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
-        JPanel topo = new JPanel(new GridLayout(0, 1, 6, 6));
-        topo.add(new JLabel("Escolha uma atividade do evento selecionado para consultar ou criar questionários."));
+        painel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        JPanel topo = new JPanel(new BorderLayout(8, 4));
+        topo.add(new JLabel("Atividade"), BorderLayout.WEST);
         atividadeQuestionario.setEnabled(false);
         atividadeQuestionario.addActionListener(e -> {
-            if (atualizandoComboAtividades) return;
+            if (atualizandoAtividades) return;
             int indice = atividadeQuestionario.getSelectedIndex();
             if (indice < 0 || indice >= atividadesQuestionarioIds.size()) {
-                painelQuestionarios.definirAtividade(0, null);
+                questionarios.definirAtividade(0, null);
             } else {
-                painelQuestionarios.definirAtividade(atividadesQuestionarioIds.get(indice),
+                questionarios.definirAtividade(
+                        atividadesQuestionarioIds.get(indice),
                         (String) atividadeQuestionario.getSelectedItem());
             }
         });
-        topo.add(atividadeQuestionario);
+        topo.add(atividadeQuestionario, BorderLayout.CENTER);
         painel.add(topo, BorderLayout.NORTH);
-        painel.add(painelQuestionarios, BorderLayout.CENTER);
+        painel.add(questionarios, BorderLayout.CENTER);
         return painel;
     }
 
-    private JPanel criarAreaPapeis() {
-        JPanel painel = caixaVertical("Papéis de acesso");
-        painel.add(new JLabel("A alteração de papel é autorizada pela API somente para administrador."));
-        botao(painel, "Alterar papel de uma conta", this::alterarPapel);
-        painel.add(javax.swing.Box.createVerticalGlue());
-        return painel;
-    }
-
-    private JPanel caixaVertical(String titulo) {
-        JPanel painel = new JPanel();
-        painel.setLayout(new javax.swing.BoxLayout(painel, javax.swing.BoxLayout.Y_AXIS));
-        painel.setBorder(BorderFactory.createTitledBorder(titulo));
-        painel.setBorder(BorderFactory.createCompoundBorder(
-                painel.getBorder(), BorderFactory.createEmptyBorder(12, 12, 12, 12)));
-        return painel;
-    }
-
-    private void botao(JPanel painel, String texto, Runnable acao) {
+    private void adicionarBotao(JPanel painel, String texto, Runnable acao) {
         JButton botao = new JButton(texto);
+        Tema.botaoPrimario(botao);
         botao.setAlignmentX(LEFT_ALIGNMENT);
-        botao.setMaximumSize(new Dimension(Integer.MAX_VALUE, botao.getPreferredSize().height + 8));
+        botao.setMaximumSize(new Dimension(280, botao.getPreferredSize().height + 8));
         botao.addActionListener(e -> acao.run());
         painel.add(botao);
-        painel.add(javax.swing.Box.createVerticalStrut(8));
+        painel.add(Box.createVerticalStrut(10));
     }
 
     private void sair() {
@@ -192,82 +208,83 @@ public class DesktopApp extends JFrame {
         SwingUtilities.invokeLater(() -> new LoginScreen().setVisible(true));
     }
 
+    private JSONObject selecionadoSemAviso() {
+        int indice = seletorEventos.getSelectedIndex();
+        return indice >= 0 && indice < eventos.size() ? eventos.get(indice) : null;
+    }
+
     private JSONObject selecionado() {
-        int linhaVisual = tabela.getSelectedRow();
-        if (linhaVisual < 0) {
-            JOptionPane.showMessageDialog(this, "Selecione um evento na lista.");
-            return null;
-        }
-        int linha = tabela.convertRowIndexToModel(linhaVisual);
-        return eventos.get(linha);
+        JSONObject evento = selecionadoSemAviso();
+        if (evento == null) JOptionPane.showMessageDialog(this, "Selecione um evento.");
+        return evento;
     }
 
     private void atualizarContexto() {
-        int linhaVisual = tabela.getSelectedRow();
-        if (linhaVisual < 0) {
-            eventoSelecionado.setText("Selecione um evento na lista.");
-            painelAtividades.definirEvento(null);
-            painelRelatorios.definirEvento(null);
+        JSONObject evento = selecionadoSemAviso();
+        if (evento == null) {
+            resumoEvento.setText("Nenhum evento selecionado.");
+            atividades.definirEvento(null);
+            relatorios.definirEvento(null);
             carregarAtividadesQuestionario(null);
             return;
         }
-        JSONObject evento = eventos.get(tabela.convertRowIndexToModel(linhaVisual));
-        eventoSelecionado.setText(evento.optString("titulo") + " · "
-                + evento.optString("status") + " · " + evento.optString("local", "A definir"));
-        painelAtividades.definirEvento(evento);
-        painelRelatorios.definirEvento(evento);
+        resumoEvento.setText(
+                evento.optString("status") + "  |  " + evento.optString("modalidade")
+                        + "  |  " + evento.optString("local", "Local a definir")
+                        + "  |  " + formatarData(evento.optString("inicio")));
+        atividades.definirEvento(evento);
+        relatorios.definirEvento(evento);
         carregarAtividadesQuestionario(evento);
     }
 
     private void carregarAtividadesQuestionario(JSONObject evento) {
         long chamada = ++sequenciaAtividades;
+        atualizandoAtividades = true;
         atividadeQuestionario.setEnabled(false);
         atividadesQuestionarioIds.clear();
         atividadeQuestionario.removeAllItems();
-        painelQuestionarios.definirAtividade(0, null);
+        questionarios.definirAtividade(0, null);
+        atualizandoAtividades = false;
         if (evento == null) return;
-        TarefaTela.executar(this, () -> api.atividades(evento.getLong("id")), atividades -> {
+
+        TarefaTela.executar(this, () -> api.atividades(evento.getLong("id")), lista -> {
             if (chamada != sequenciaAtividades) return;
-            atualizandoComboAtividades = true;
-            for (int i = 0; i < atividades.length(); i++) {
-                JSONObject atividade = atividades.getJSONObject(i);
+            atualizandoAtividades = true;
+            for (int i = 0; i < lista.length(); i++) {
+                JSONObject atividade = lista.getJSONObject(i);
                 atividadesQuestionarioIds.add(atividade.getLong("id"));
                 atividadeQuestionario.addItem(atividade.getString("titulo"));
             }
-            boolean habilitado = !atividadesQuestionarioIds.isEmpty();
-            atividadeQuestionario.setEnabled(habilitado);
-            if (habilitado) {
+            atividadeQuestionario.setEnabled(!atividadesQuestionarioIds.isEmpty());
+            if (!atividadesQuestionarioIds.isEmpty()) {
                 atividadeQuestionario.setSelectedIndex(0);
-                painelQuestionarios.definirAtividade(atividadesQuestionarioIds.get(0),
+                questionarios.definirAtividade(
+                        atividadesQuestionarioIds.get(0),
                         (String) atividadeQuestionario.getSelectedItem());
             }
-            atualizandoComboAtividades = false;
+            atualizandoAtividades = false;
         });
     }
 
     private void carregarEventos() {
+        JSONObject atual = selecionadoSemAviso();
+        Long idAnterior = atual == null ? null : atual.getLong("id");
         TarefaTela.executar(this, api::listar, lista -> {
-            Long idAnterior = null;
-            int selecionado = tabela.getSelectedRow();
-            if (selecionado >= 0 && tabela.convertRowIndexToModel(selecionado) < eventos.size())
-                idAnterior = eventos.get(tabela.convertRowIndexToModel(selecionado)).getLong("id");
+            atualizandoEventos = true;
             eventos.clear();
             eventos.addAll(lista);
-            modeloTabela.setRowCount(0);
-            int linhaParaSelecionar = -1;
-            for (int i = 0; i < lista.size(); i++) {
-                JSONObject e = lista.get(i);
-                modeloTabela.addRow(new Object[] {
-                    e.getString("titulo"), e.getString("modalidade"), e.optString("local", "A definir"),
-                    formatarData(e.getString("inicio")), e.getString("status")
-                });
-                if (idAnterior != null && e.getLong("id") == idAnterior) linhaParaSelecionar = i;
+            seletorEventos.removeAllItems();
+            int selecionar = -1;
+            for (int i = 0; i < eventos.size(); i++) {
+                JSONObject evento = eventos.get(i);
+                seletorEventos.addItem(
+                        evento.getString("titulo") + " — " + evento.getString("status"));
+                if (idAnterior != null && evento.getLong("id") == idAnterior) selecionar = i;
             }
-            if (linhaParaSelecionar >= 0) {
-                int linhaVisivel = tabela.convertRowIndexToView(linhaParaSelecionar);
-                if (linhaVisivel >= 0) tabela.setRowSelectionInterval(linhaVisivel, linhaVisivel);
-            }
-            else atualizarContexto();
+            if (selecionar < 0 && !eventos.isEmpty()) selecionar = 0;
+            seletorEventos.setSelectedIndex(selecionar);
+            atualizandoEventos = false;
+            atualizarContexto();
         });
     }
 
@@ -281,40 +298,55 @@ public class DesktopApp extends JFrame {
     }
 
     private void abrirDialogoEvento(JSONObject evento) {
-        if (evento != null && !evento.getString("status").equals("RASCUNHO")) {
+        if (evento != null && !"RASCUNHO".equals(evento.optString("status"))) {
             JOptionPane.showMessageDialog(this, "Somente eventos em rascunho podem ser editados.");
             return;
         }
+        String dia = java.time.LocalDate.now().plusDays(1).toString();
         JTextField titulo = new JTextField(evento == null ? "" : evento.optString("titulo"));
         JTextField descricao = new JTextField(evento == null ? "" : evento.optString("descricao"));
-        String dia = java.time.LocalDate.now().plusDays(1).toString();
-        JTextField inicio = new JTextField(evento == null ? dia + "T09:00:00" : evento.optString("inicio"));
-        JTextField fim = new JTextField(evento == null ? dia + "T18:00:00" : evento.optString("fim"));
-        JTextField local = new JTextField(evento == null ? "A definir" : evento.optString("local", "A definir"));
-        JTextField fuso = new JTextField(evento == null ? "America/Sao_Paulo" : evento.optString("fuso", "America/Sao_Paulo"));
-        JComboBox<String> modalidade = new JComboBox<>(new String[] {"PRESENCIAL", "ONLINE", "HIBRIDO"});
+        JTextField inicio = new JTextField(
+                evento == null ? dia + "T09:00:00" : evento.optString("inicio"));
+        JTextField fim = new JTextField(
+                evento == null ? dia + "T18:00:00" : evento.optString("fim"));
+        JTextField local = new JTextField(
+                evento == null ? "A definir" : evento.optString("local"));
+        JTextField fuso = new JTextField(
+                evento == null ? "America/Sao_Paulo" : evento.optString("fuso"));
+        JComboBox<String> modalidade = new JComboBox<>(
+                new String[] {"PRESENCIAL", "ONLINE", "HIBRIDO"});
         if (evento != null) {
             modalidade.setSelectedItem(evento.optString("modalidade", "PRESENCIAL"));
             fuso.setEditable(false);
         }
 
-        JPanel painel = new JPanel(new GridLayout(0, 2, 8, 6));
-        adicionarCampo(painel, "Título", titulo);
-        adicionarCampo(painel, "Descrição", descricao);
-        adicionarCampo(painel, "Início (aaaa-mm-ddThh:mm:ss)", inicio);
-        adicionarCampo(painel, "Fim (aaaa-mm-ddThh:mm:ss)", fim);
-        adicionarCampo(painel, "Local", local);
-        adicionarCampo(painel, "Fuso IANA (fixo após criação)", fuso);
-        adicionarCampo(painel, "Modalidade", modalidade);
-        if (JOptionPane.showConfirmDialog(this, painel, evento == null ? "Novo evento" : "Editar evento",
-                JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION) return;
+        JPanel formulario = new JPanel(new GridLayout(0, 2, 8, 6));
+        adicionarCampo(formulario, "Título", titulo);
+        adicionarCampo(formulario, "Descrição", descricao);
+        adicionarCampo(formulario, "Início (aaaa-mm-ddThh:mm:ss)", inicio);
+        adicionarCampo(formulario, "Fim (aaaa-mm-ddThh:mm:ss)", fim);
+        adicionarCampo(formulario, "Local", local);
+        adicionarCampo(formulario, "Fuso do evento", fuso);
+        adicionarCampo(formulario, "Modalidade", modalidade);
+        if (JOptionPane.showConfirmDialog(
+                        this, formulario, evento == null ? "Novo evento" : "Editar evento",
+                        JOptionPane.OK_CANCEL_OPTION)
+                != JOptionPane.OK_OPTION) return;
 
-        JSONObject corpo = new JSONObject().put("titulo", titulo.getText().trim())
-                .put("descricao", descricao.getText().trim()).put("inicio", inicio.getText().trim())
-                .put("fim", fim.getText().trim()).put("local", local.getText().trim())
-                .put("fuso", fuso.getText().trim()).put("modalidade", modalidade.getSelectedItem());
-        TarefaTela.executar(this, () -> evento == null ? api.criarEvento(corpo)
-                : api.editarEvento(evento.getLong("id"), corpo), resposta -> carregarEventos());
+        JSONObject corpo = new JSONObject()
+                .put("titulo", titulo.getText().trim())
+                .put("descricao", descricao.getText().trim())
+                .put("inicio", inicio.getText().trim())
+                .put("fim", fim.getText().trim())
+                .put("local", local.getText().trim())
+                .put("fuso", fuso.getText().trim())
+                .put("modalidade", modalidade.getSelectedItem());
+        TarefaTela.executar(
+                this,
+                () -> evento == null
+                        ? api.criarEvento(corpo)
+                        : api.editarEvento(evento.getLong("id"), corpo),
+                resposta -> carregarEventos());
     }
 
     private void adicionarCampo(JPanel painel, String titulo, java.awt.Component campo) {
@@ -322,26 +354,36 @@ public class DesktopApp extends JFrame {
         painel.add(campo);
     }
 
+    private void publicarSelecionado() {
+        mudarEstadoEvento(true);
+    }
+
     private void removerSelecionado() {
         JSONObject evento = selecionado();
         if (evento == null) return;
-        if (!evento.optString("status").equals("RASCUNHO")) {
-            JOptionPane.showMessageDialog(this, "Somente rascunhos podem ser removidos.");
+        if (!"RASCUNHO".equals(evento.optString("status"))) {
+            JOptionPane.showMessageDialog(this, "Somente rascunhos podem ser excluídos.");
             return;
         }
-        if (JOptionPane.showConfirmDialog(this, "Remover o rascunho selecionado?", "Confirmar remoção",
-                JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) return;
-        TarefaTela.executar(this, () -> { api.remover(evento.getLong("id")); return true; }, ok -> carregarEventos());
+        if (JOptionPane.showConfirmDialog(
+                        this, "Excluir o evento em rascunho?", "Confirmar exclusão",
+                        JOptionPane.YES_NO_OPTION)
+                != JOptionPane.YES_OPTION) return;
+        TarefaTela.executar(this, () -> {
+            api.removerEvento(evento.getLong("id"));
+            return true;
+        }, ok -> carregarEventos());
     }
 
-    private void publicarSelecionado() { mudarEstadoEvento("publicar"); }
-    private void encerrarSelecionado() { mudarEstadoEvento("encerrar"); }
+    private void encerrarSelecionado() {
+        mudarEstadoEvento(false);
+    }
 
-    private void mudarEstadoEvento(String operacao) {
+    private void mudarEstadoEvento(boolean publicar) {
         JSONObject evento = selecionado();
         if (evento == null) return;
         TarefaTela.executar(this, () -> {
-            if (operacao.equals("publicar")) api.publicar(evento.getLong("id"));
+            if (publicar) api.publicar(evento.getLong("id"));
             else api.encerrar(evento.getLong("id"));
             return true;
         }, ok -> carregarEventos());
@@ -350,54 +392,56 @@ public class DesktopApp extends JFrame {
     private void regrasSelecionadas() {
         JSONObject evento = selecionado();
         if (evento == null) return;
-        TarefaTela.executar(this, () -> api.regrasInscricao(evento.getLong("id")), regras -> exibirEditorRegras(evento, regras));
+        TarefaTela.executar(
+                this,
+                () -> api.regrasInscricao(evento.getLong("id")),
+                regras -> exibirEditorRegras(evento, regras));
     }
 
     private void exibirEditorRegras(JSONObject evento, JSONObject atuais) {
-        javax.swing.JCheckBox escolher = new javax.swing.JCheckBox("Participante escolhe atividades", atuais.getBoolean("escolherAtividades"));
-        javax.swing.JCheckBox vagas = new javax.swing.JCheckBox("Controlar capacidade/vagas", atuais.getBoolean("controlarVagas"));
+        javax.swing.JCheckBox escolher = new javax.swing.JCheckBox(
+                "Participante escolhe atividades", atuais.getBoolean("escolherAtividades"));
+        javax.swing.JCheckBox vagas = new javax.swing.JCheckBox(
+                "Controlar capacidade das atividades", atuais.getBoolean("controlarVagas"));
         JTextField prazo = new JTextField(atuais.getString("prazoCancelamento"));
         JPanel painel = new JPanel(new GridLayout(0, 1, 4, 4));
         painel.add(escolher);
         painel.add(vagas);
-        painel.add(new JLabel("Prazo (aaaa-mm-ddThh:mm:ss; fuso do evento)"));
+        painel.add(new JLabel("Prazo para cancelamento (aaaa-mm-ddThh:mm:ss)"));
         painel.add(prazo);
-        painel.add(new JLabel("A API impede mudanças após a primeira inscrição."));
-        if (JOptionPane.showConfirmDialog(this, painel, "Regras — " + evento.optString("titulo"),
-                JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION) return;
-        JSONObject corpo = new JSONObject().put("escolherAtividades", escolher.isSelected())
-                .put("controlarVagas", vagas.isSelected()).put("prazoCancelamento", prazo.getText().trim());
-        TarefaTela.executar(this, () -> api.configurarRegrasInscricao(evento.getLong("id"), corpo),
+        if (JOptionPane.showConfirmDialog(
+                        this, painel, "Inscrição — " + evento.optString("titulo"),
+                        JOptionPane.OK_CANCEL_OPTION)
+                != JOptionPane.OK_OPTION) return;
+        JSONObject corpo = new JSONObject()
+                .put("escolherAtividades", escolher.isSelected())
+                .put("controlarVagas", vagas.isSelected())
+                .put("prazoCancelamento", prazo.getText().trim());
+        TarefaTela.executar(
+                this,
+                () -> api.configurarRegrasInscricao(evento.getLong("id"), corpo),
                 resposta -> JOptionPane.showMessageDialog(this, "Regras de inscrição salvas."));
     }
 
     private void alterarPapel() {
-        JTextField usuarioId = new JTextField();
-        JComboBox<String> papel = new JComboBox<>(new String[] {"PARTICIPANTE", "ORGANIZADOR", "ADMINISTRADOR"});
+        JTextField email = new JTextField();
+        JComboBox<String> papel = new JComboBox<>(
+                new String[] {"PARTICIPANTE", "ORGANIZADOR", "ADMINISTRADOR"});
         JPanel campos = new JPanel(new GridLayout(0, 2, 8, 8));
-        adicionarCampo(campos, "ID da conta", usuarioId);
+        adicionarCampo(campos, "E-mail da conta", email);
         adicionarCampo(campos, "Novo papel", papel);
-        campos.add(new JLabel("Use o ID de outra conta; não é permitido alterar a própria conta."));
-        campos.add(new JLabel("A API confirma se sua conta pode executar esta ação."));
-        if (JOptionPane.showConfirmDialog(this, campos, "Alterar papel", JOptionPane.OK_CANCEL_OPTION)
+        if (JOptionPane.showConfirmDialog(
+                        this, campos, "Gerenciar usuário", JOptionPane.OK_CANCEL_OPTION)
                 != JOptionPane.OK_OPTION) return;
-        try {
-            long id = Long.parseLong(usuarioId.getText().trim());
-            TarefaTela.executar(this,
-                    () -> new JSONObject(api.requisicao("PUT", "/usuarios/" + id + "/papel",
-                            new JSONObject().put("papel", papel.getSelectedItem()))),
-                    usuario -> JOptionPane.showMessageDialog(this,
-                            "Papel atualizado para " + usuario.getString("papel") + "."));
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Informe o ID numérico de uma conta existente.");
-        }
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); }
-            catch (Exception ignored) { }
-            new LoginScreen().setVisible(true);
-        });
+        TarefaTela.executar(
+                this,
+                () -> api.alterarPapel(
+                        email.getText().trim(), (String) papel.getSelectedItem()),
+                usuario -> JOptionPane.showMessageDialog(
+                        this,
+                        usuario.getString("nome")
+                                + " agora é "
+                                + usuario.getString("papel")
+                                + "."));
     }
 }

@@ -7,7 +7,7 @@ Esta divisão vale para o trabalho a partir da base entregue hoje. Matheus Rezen
 
 Responsável por:
 - Código Java do backend, objetos do domínio e regras de negócio.
-- Banco H2, persistência JDBC e migrações.
+- Banco PostgreSQL no Docker, persistência JDBC e migrações.
 - Cadastro, autenticação e autorização no servidor.
 - Eventos, atividades, inscrições, vagas, cancelamento e agenda.
 - Frequência, QR Code, correções manuais e histórico.
@@ -27,7 +27,7 @@ Pasta principal: desktop/src/main/java/
 Arquivos principais: LoginScreen.java, DesktopApp.java, AtividadesPainel.java, QuestionariosPainel.java, RelatoriosPainel.java, EventoApiClient.java e TarefaTela.java.
 
 O que já existe:
-- Login e cadastro.
+- Login de administrador e organizador.
 - Lista e criação de eventos, publicação e encerramento.
 - Lista e criação de atividades em evento rascunho.
 - Configuração da política de frequência.
@@ -37,7 +37,7 @@ O que já existe:
 
 O que já foi implementado nesta base:
 1. [Implementado] Criar e editar evento em rascunho, incluindo local e fuso; publicar, encerrar e remover rascunhos.
-2. [Implementado] Criar, editar e remover atividades em rascunho; consultar e vincular pessoas por ID de conta.
+2. [Implementado] Criar, editar e remover atividades em rascunho; consultar e vincular pessoas pelo e-mail da conta.
 3. [Implementado] Configurar escolha de atividades, controle de vagas e prazo de cancelamento.
 4. [Implementado] Configurar frequência, gerar QR, fazer lançamento manual auditável e corrigir presenças.
 5. [Implementado] Criar questionários dos três tipos de resposta e consultar resultados.
@@ -111,7 +111,7 @@ O participante se inscreve, organiza sua agenda, registra presença e avalia qua
 
 - Ler README e Explicacao antes de começar.
 - Não usar framework de aplicação: backend Java puro, Swing no desktop, HTML/CSS/JavaScript no web.
-- Todas as telas usam a mesma API. Apenas o backend acessa o H2.
+- Todas as telas usam a mesma API. Apenas o backend acessa o PostgreSQL.
 - Regras de vagas, presença e elegibilidade são decididas na API.
 - Não alterar contratos da API sem combinar com Matheus Rezende.
 - Testar o caminho válido e pelo menos uma falha da própria funcionalidade.

@@ -2,18 +2,20 @@ package adapter.out.qr;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.io.ByteArrayInputStream;
-import javax.imageio.ImageIO;
 import org.junit.jupiter.api.Test;
 
 class QrCodeTest {
     @Test
-    void geraImagemPngDeTamanhoEsperado() throws Exception {
-        byte[] png = new QrCode().gerar("token-de-teste");
-        var imagem = ImageIO.read(new ByteArrayInputStream(png));
+    void geraQrQuePodeSerLidoSemAlterarToken() throws Exception {
+        QrCode qr = new QrCode();
+        for (int i = 0; i < 100; i++) {
+            String token = "token-deterministico-" + i;
+            assertEquals(token, qr.ler(qr.gerar(token)));
+        }
+    }
 
-        assertNotNull(imagem);
-        assertEquals(300, imagem.getWidth());
-        assertEquals(300, imagem.getHeight());
+    @Test
+    void rejeitaArquivoQueNaoEhImagem() {
+        assertThrows(java.io.IOException.class, () -> new QrCode().ler("texto".getBytes()));
     }
 }

@@ -23,11 +23,21 @@ public class RegrasInscricaoJdbc implements RegrasInscricaoRepository {
     }
 
     public void salvar(long id, RegrasInscricao r) {
-        Sql.executar(
-                "MERGE INTO regras_inscricao KEY(evento_id) VALUES (?,?,?,?)",
-                id,
-                r.escolherAtividades(),
-                r.controlarVagas(),
-                r.prazoCancelamento());
+        int alteradas =
+                Sql.atualizar(
+                        "UPDATE regras_inscricao SET escolher_atividades=?, controlar_vagas=?,"
+                                + " prazo_cancelamento=? WHERE evento_id=?",
+                        r.escolherAtividades(),
+                        r.controlarVagas(),
+                        r.prazoCancelamento(),
+                        id);
+        if (alteradas == 0)
+            Sql.executar(
+                    "INSERT INTO regras_inscricao(evento_id, escolher_atividades, controlar_vagas,"
+                            + " prazo_cancelamento) VALUES (?,?,?,?)",
+                    id,
+                    r.escolherAtividades(),
+                    r.controlarVagas(),
+                    r.prazoCancelamento());
     }
 }

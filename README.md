@@ -1,88 +1,174 @@
-# Plataforma de Gestão de Eventos — JAVA8
+# Plataforma de Gestão de Eventos - JAVA8
 
-Projeto de POO II em **Java 21, sem framework de aplicação**. API com `HttpServer`, banco H2 via JDBC, desktop Swing e site HTML/CSS/JavaScript. As regras novas ficam em objetos de domínio e casos de uso; as telas consomem a mesma API.
+Projeto integrador de POO II desenvolvido em **Java 21, sem framework de aplicação**.
 
-## Executar em outro computador
+- **Desktop:** administração e organização dos eventos.
+- **Site:** acesso de visitantes e participantes.
+- **API:** regras de negócio, autorização e integração das interfaces.
+- **PostgreSQL:** banco compartilhado pelo desktop e pelo site por meio da API.
 
-Instale JDK 21 ou superior e Maven 3.9+. A primeira compilação precisa de internet para baixar bibliotecas. Execute os comandos a partir da raiz deste repositório:
+## O que está implementado
 
-```sh
-mvn clean package
-java -jar target/gestao-eventos-1.0-SNAPSHOT.jar --demo
-java -jar target/gestao-eventos-1.0-SNAPSHOT.jar
+O projeto cobre o núcleo obrigatório RF-01 a RF-31 da especificação:
+
+- cadastro, login, permissões e edição do perfil;
+- criação, edição, publicação e encerramento de eventos;
+- programação com atividades, tipos, trilhas, locais, horários, conflitos e pessoas vinculadas;
+- inscrição configurável, controle de vagas, cancelamento e agenda pessoal;
+- frequência por QR Code, entrada/saída, check-in único e lançamento manual;
+- questionários com texto, escolha única e escala numérica;
+- relatórios de inscrições e frequência com exportação CSV;
+- API e banco compartilhados entre desktop e site.
+
+Certificados (RF-32 a RF-35) são desejáveis e a extensão social (RF-36) é opcional, portanto não fazem parte desta versão.
+
+## Iniciar API, site e banco
+
+### Pré-requisito
+
+Instale e abra o **Docker Desktop**.
+
+### Primeira execução
+
+Abra o PowerShell na pasta do projeto e execute:
+
+```powershell
+docker compose up --build -d
 ```
 
-Abra **http://localhost:8080**. O site é servido pela própria API. Para desenvolvimento, após compilar, também pode usar `mvn exec:java`.
+Esse único comando:
 
-O comando `--demo` cria uma base fictícia com **503 usuários (501 participantes), 100 atividades, 501 inscrições, pessoas vinculadas e um questionário** em banco novo. Não apaga a base existente; repetir não duplica a carga. Use os dados demo apenas para apresentação local. As datas são relativas ao primeiro dia de criação da base; se a apresentação ocorrer após o prazo do evento, crie uma base separada como abaixo.
+1. inicia o PostgreSQL;
+2. compila e testa a API com Java 21;
+3. cria ou atualiza as tabelas;
+4. prepara os dados de demonstração;
+5. inicia a API e o site.
 
-| Perfil | E-mail | Senha de demonstração |
-|---|---|---|
-| Administrador | admin@demo.local | Demo123! |
-| Organizador | organizador@demo.local | Demo123! |
-| Participante | participante@demo.local | Demo123! |
+Abra o site em [http://localhost:8080](http://localhost:8080).
 
-A carga é explícita, não ocorre ao iniciar a API. O autocadastro público sempre cria participante. O administrador pode alterar o papel de outros usuários pela API.
+Para conferir os contêineres e acompanhar o servidor:
 
-No cadastro, informe nome, e-mail no formato `nome@dominio.com` e senha com pelo menos 8 caracteres, incluindo letras e números. E-mail duplicado ou dados inválidos são recusados pela API com uma mensagem exibida pelo desktop e pelo site.
+```powershell
+docker compose ps
+docker compose logs -f servidor
+```
 
-Para registrar frequência no site, entre com a conta do participante inscrito e use **Ler QR Code com a câmera**. O navegador pedirá permissão de câmera. Use um navegador compatível com o leitor nativo de QR; o site envia somente o token lido para a API. O organizador gera e exibe o código no desktop.
+## Abrir o desktop
 
-### Desktop
+O Docker mantém o servidor e o banco, mas não abre a janela Swing do Windows. Para o desktop também são necessários **JDK 21** e **Maven** instalados.
 
-Mantenha a API em execução e, em outro terminal:
+Com o Docker ligado, abra outro PowerShell na pasta do projeto:
 
-```sh
+```powershell
 mvn -f desktop/pom.xml clean package
 java -jar desktop/target/desktop-1.0-SNAPSHOT.jar
 ```
 
-O desktop precisa de ambiente gráfico. Entre com `organizador@demo.local`. Após o login, os recursos ficam em uma janela Swing única: a lista de eventos fica à esquerda e as abas à direita separam gestão do evento, programação/presença, questionários/resultados, relatórios e papéis. É possível criar/editar eventos em rascunho, administrar atividades e vínculos por ID, publicar, encerrar, configurar inscrições e frequência, gerar QR, lançar presença e consultar/exportar CSV. A API decide as permissões; a tela não concede papéis por conta própria.
+Use o desktop para contas de administrador e organizador. Visitantes e participantes usam o site.
 
-### Configuração e banco
+## Depois de alterar o código
 
-O padrão é `./data/eventos.mv.db`, usuário/senha locais `eventos`. As migrações são executadas na primeira conexão, sem apagar registros. Para uma demonstração independente:
+Para alterações na API, no site, no banco ou no seed:
 
-```sh
-java '-Ddb.url=jdbc:h2:file:./data/apresentacao;DB_CLOSE_DELAY=-1' -jar target/gestao-eventos-1.0-SNAPSHOT.jar --demo
-java '-Ddb.url=jdbc:h2:file:./data/apresentacao;DB_CLOSE_DELAY=-1' -Dapi.port=8081 -jar target/gestao-eventos-1.0-SNAPSHOT.jar
-java -Dapi.url=http://localhost:8081 -jar desktop/target/desktop-1.0-SNAPSHOT.jar
+```powershell
+docker compose up --build -d
 ```
 
-Execute somente uma API por base H2. O padrão de rede é `127.0.0.1`; `-Dapi.host=0.0.0.0` permite acesso pela rede local de demonstração. Sessões são locais ao processo e deixam de valer ao reiniciar. Não há infraestrutura de produção, HTTPS ou recuperação de senha neste recorte.
+Para alterações somente no desktop:
 
-## Testes e demonstração
-
-```sh
-mvn test
-python3 scripts/demo-api.py
-python3 scripts/medir-api.py
+```powershell
+mvn -f desktop/pom.xml clean package
+java -jar desktop/target/desktop-1.0-SNAPSHOT.jar
 ```
 
-Os testes usam **H2 em memória**, sem apagar `data/`. Incluem domínio, persistência, caso de uso com repositório em memória e HTTP real em portas temporárias. O script demonstra a API contra o servidor iniciado e exige a conta demo de organizador; cria um evento e uma conta fictícia próprios. O CSV fica em `target/demo-api.csv`.
+## Parar ou reiniciar os dados
 
-## Onde continuar
+Parar a aplicação sem apagar o banco:
 
-- [Divisao — responsabilidades a partir desta entrega](Divisao)
-- [Evidencias — textos para S1 a S7](Evidencias)
-- [Explicacao — guia para quem está começando](Explicacao)
-- [Divisão e pendências detalhadas](docs/equipe.md)
-- [Contrato da API e exemplos](docs/api.md)
-- [Domínio e arquitetura](docs/arquitetura.md)
+```powershell
+docker compose down
+```
+
+Apagar o banco de demonstração e recriá-lo do zero:
+
+```powershell
+docker compose down -v
+docker compose up --build -d
+```
+
+> `docker compose down -v` apaga o volume PostgreSQL e todos os dados cadastrados localmente.
+
+## Contas de demonstração
+
+| Perfil | E-mail | Senha |
+|---|---|---|
+| Administrador | `admin@demo.local` | `Demo123!` |
+| Organizador | `organizador@demo.local` | `Demo123!` |
+| Participante | `participante@demo.local` | `Demo123!` |
+
+O autocadastro do site sempre cria uma conta de participante. O seed é idempotente e prepara **10 eventos, 500 participantes e 100 atividades, distribuídas em 10 atividades por evento**.
+
+## Como testar o fluxo principal
+
+1. Entre no desktop como organizador e consulte ou crie um evento.
+2. Cadastre atividades, configure inscrição e publique o evento.
+3. Abra o site como participante, faça a inscrição e escolha as atividades.
+4. No desktop, gere o QR Code da atividade.
+5. No site, use a câmera para ler o QR e registrar a presença.
+6. Responda à avaliação no site.
+7. Consulte e exporte os relatórios pelo desktop.
+
+A câmera do navegador funciona em `localhost` ou em uma conexão HTTPS. O QR contém apenas um token temporário, sem senha ou dado pessoal.
+
+## Tecnologias utilizadas
+
+| Parte | Tecnologia | Uso |
+|---|---|---|
+| Linguagem principal | Java 21 | Domínio, casos de uso, API e desktop |
+| API HTTP | `HttpServer` do JDK | Endpoints REST sem framework |
+| Desktop | Java Swing | Interface de administrador e organizador |
+| Site | HTML, CSS e JavaScript | Interface de visitante e participante |
+| Comunicação | Fetch API e `HttpClient` | Consumo da mesma API pelas duas interfaces |
+| Banco | PostgreSQL 17 | Persistência da aplicação |
+| Acesso ao banco | JDBC | SQL e transações explícitas |
+| Contêineres | Docker e Docker Compose | Execução reproduzível da API e do banco |
+| Build | Maven | Compilação e execução dos testes Java |
+| JSON | `org.json` | Leitura e escrita das mensagens da API |
+| QR Code | ZXing e `BarcodeDetector` do navegador | Geração e leitura dos códigos |
+| Testes | JUnit 5 e H2 em memória | Testes de domínio, aplicação, JDBC e HTTP |
+| Senhas | PBKDF2 com HMAC-SHA-256 | Hash com sal aleatório |
+
+Swing, `HttpServer`, JDBC, `HttpClient`, HTML, CSS e JavaScript são usados diretamente. Não há Spring, Hibernate, React ou outro framework de aplicação.
+
+## Arquitetura
+
+O código segue portas e adaptadores:
+
+```text
+Desktop Swing ----\
+                   > HTTP API -> aplicação -> domínio
+Site web ---------/                 |
+                                    v
+                              portas de repositório
+                                    |
+                                    v
+                             adaptadores JDBC -> PostgreSQL
+```
+
+As regras ficam no domínio e nos casos de uso. Handlers HTTP, telas e repositórios apenas adaptam entrada, saída e persistência.
+
+## Documentação
+
+- [Contrato da API](docs/api.md)
+- [Arquitetura e modelo de domínio](docs/arquitetura.md)
 - [Decisões D-01 a D-08 e refatorações](docs/decisoes.md)
-- [Matriz RF, RN, RNF, ROO e cenários](docs/rastreabilidade.md)
-- [Textos para as 16 evidências](docs/evidencias.md)
-- [Validação desta entrega](docs/validacao.md)
-- [Tecnologias vigentes](docs/tecnologias.md)
+- [Matriz de rastreabilidade](docs/rastreabilidade.md)
+- [Escopo obrigatório](docs/escopo-obrigatorio.md)
+- [Guia do código](docs/guia-codigo.md)
+- [Evidências e validações](docs/validacao.md)
 
-## Limites declarados
+## Atenção antes da entrega
 
-A API cobre o núcleo obrigatório, com testes de domínio, persistência e HTTP. As telas Swing estão organizadas em uma janela única e o site tem layout responsivo; ambas consomem a mesma API. A conferência manual da janela em ambiente gráfico, os fluxos web com uma conta real e o QR com câmera física ainda precisam ser ensaiados pela equipe. Consulte a divisão detalhada antes da apresentação final.
+A especificação também exige histórico de versionamento e contribuição da equipe. Esta cópia da pasta não contém o diretório `.git`; portanto, confirme se o repositório oficial possui os commits dos integrantes.
 
-Políticas de inscrição ficam bloqueadas após a primeira inscrição; frequência após o primeiro registro; questionários são imutáveis após criação. Programação é montada em rascunho e bloqueada após publicação. Isso preserva o histórico com uma implementação simples. Correções manuais de frequência permanecem auditáveis. Relatórios refletem o estado atual; avaliações já enviadas permanecem registradas mesmo após correção posterior de presença.
-
-Certificados (RF-32 a RF-35) e extensão social (RF-36) não foram implementados, pois não substituem o núcleo obrigatório. A equipe deve conseguir explicar o código, inclusive as alterações produzidas com assistência de IA.
-
-## Responsáveis pela continuação
-
-Matheus Rezende: API. Habny: desktop. Carlos: web público, conta/perfil e visual. Matheus Lima: web do participante (inscrição, agenda, presença e avaliação). A lista de tarefas e critérios de conclusão está em [Divisao](Divisao).
+Antes da apresentação, ensaie os cenários CA-01 a CA-07 pelas telas, especialmente a leitura do QR com uma câmera física. Testes automatizados validam as regras, mas não substituem a demonstração visual diante do professor.

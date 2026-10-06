@@ -121,7 +121,6 @@ public class EventoRepositoryJdbc implements EventoRepository {
         String sql = "DELETE FROM eventos WHERE id = ?";
         try (Connection conn = ConnectionFactory.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-
             stmt.setLong(1, id);
             stmt.executeUpdate();
         } catch (SQLException e) {
