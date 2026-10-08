@@ -161,14 +161,3 @@ As regras ficam no domínio e nos casos de uso. Handlers HTTP, telas e repositó
 
 - [Contrato da API](docs/api.md)
 - [Arquitetura e modelo de domínio](docs/arquitetura.md)
-- [Decisões D-01 a D-08 e refatorações](docs/decisoes.md)
-- [Matriz de rastreabilidade](docs/rastreabilidade.md)
-- [Escopo obrigatório](docs/escopo-obrigatorio.md)
-- [Guia do código](docs/guia-codigo.md)
-- [Evidências e validações](docs/validacao.md)
-
-## Atenção antes da entrega
-
-A especificação também exige histórico de versionamento e contribuição da equipe. Esta cópia da pasta não contém o diretório `.git`; portanto, confirme se o repositório oficial possui os commits dos integrantes.
-
-Antes da apresentação, ensaie os cenários CA-01 a CA-07 pelas telas, especialmente a leitura do QR com uma câmera física. Testes automatizados validam as regras, mas não substituem a demonstração visual diante do professor.
