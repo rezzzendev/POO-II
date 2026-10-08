@@ -53,17 +53,3 @@ classDiagram
   TipoResposta <|.. EscolhaUnica
   TipoResposta <|.. Escala
 ```
-
-A relação inscrição/atividade é uma seleção persistida por IDs. A agenda não é outra tabela: deriva das seleções válidas. Não há subclasses de atividade apenas para distinguir palestra e oficina; o tipo é texto configurável. Não é necessário forçar herança de entidades.
-
-## Persistência e consistência
-
-`src/main/resources/db/001-inicial.sql` cria a base original; `002-politicas.sql` acrescenta configurações, frequência e avaliação. São scripts idempotentes aditivos. `ConnectionFactory` os aplica na primeira conexão de cada URL de banco no processo. Não é um sistema genérico de migração com checksum; futuras alterações devem manter a compatibilidade e ganhar novo script explícito.
-
-Na execução normal, PostgreSQL e API são serviços separados no Docker Compose e os dados ficam em volume nomeado. H2 permanece somente no escopo de testes automatizados; o SQL compartilhado evita manter dois esquemas diferentes.
-
-Inscrição e escolhas são gravadas em transação; questionário e perguntas/opções também; avaliação e respostas também. `UNIQUE(questionario_id, usuario_id)` impede avaliações duplicadas. Requisições da API são executadas sequencialmente em um processo, e o caso de uso de inscrição também serializa reserva/alteração de vagas. Esta solução não oferece coordenação entre múltiplas instâncias da API — fora do recorte da demonstração local.
-
-O estado do evento limita a leitura pública. Administradores e organizadores formam a organização global desta instalação acadêmica e podem operar os eventos; não existe separação por proprietário de evento. Participantes operam seus próprios registros. Os relatórios e respostas identificadas são restritos à organização.
-
-Datas de programação são horários locais associados ao fuso IANA do evento. Agenda e conflito entre eventos comparam instantes. Registros de frequência e avaliações guardam UTC. O fuso é fixado na criação do evento para não reinterpretar o histórico.
