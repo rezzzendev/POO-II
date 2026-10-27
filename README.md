@@ -157,6 +157,18 @@ Site web ---------/                 |
 
 As regras ficam no domínio e nos casos de uso. Handlers HTTP, telas e repositórios apenas adaptam entrada, saída e persistência.
 
+## Testes automatizados
+
+Os testes ficam em `src/test/java` e usam H2 em memória (não precisam de Docker, PostgreSQL ou interface):
+
+```bash
+mvn test
+```
+
+- `domain/`: regras e invariantes das entidades.
+- `application/`: casos de uso sem banco nem HTTP.
+- `adapter/`: persistência JDBC, QR Code e API (incluindo 401/403).
+
 ## Documentação
 
 - [Contrato da API](docs/api.md)
